@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Sep 08, 2018 at 08:28 PM
+-- Generation Time: Sep 08, 2018 at 09:40 PM
 -- Server version: 10.1.34-MariaDB
 -- PHP Version: 7.2.8
 
@@ -30,16 +30,16 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `esp` (
   `Time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `Heading` decimal(5,2) NOT NULL,
-  `Gx` decimal(5,2) NOT NULL,
-  `Gy` decimal(5,2) NOT NULL,
-  `Gz` decimal(5,2) NOT NULL,
-  `Ax` decimal(5,2) NOT NULL,
-  `Ay` decimal(5,2) NOT NULL,
-  `Az` decimal(5,2) NOT NULL,
-  `Mx` decimal(5,2) NOT NULL,
-  `My` decimal(5,2) NOT NULL,
-  `Mz` decimal(5,2) NOT NULL
+  `Heading` decimal(8,6) NOT NULL,
+  `Gx` decimal(8,6) NOT NULL,
+  `Gy` decimal(8,6) NOT NULL,
+  `Gz` decimal(8,6) NOT NULL,
+  `Ax` decimal(8,6) NOT NULL,
+  `Ay` decimal(8,6) NOT NULL,
+  `Az` decimal(8,6) NOT NULL,
+  `Mx` decimal(8,6) NOT NULL,
+  `My` decimal(8,6) NOT NULL,
+  `Mz` decimal(8,6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -47,9 +47,9 @@ CREATE TABLE `esp` (
 --
 
 INSERT INTO `esp` (`Time`, `Heading`, `Gx`, `Gy`, `Gz`, `Ax`, `Ay`, `Az`, `Mx`, `My`, `Mz`) VALUES
-('2018-09-08 18:22:36', '35.25', '12.31', '123.42', '41.41', '123.41', '56.43', '51.51', '51.52', '52.41', '23.52'),
-('2018-09-08 18:22:50', '35.25', '12.31', '123.42', '41.41', '123.41', '56.43', '51.51', '51.52', '52.41', '23.52'),
-('2018-09-08 18:22:50', '35.25', '12.31', '123.42', '41.41', '123.41', '56.43', '51.51', '51.52', '52.41', '23.52');
+('2018-09-08 18:58:05', '35.250000', '12.310000', '99.999999', '41.410000', '99.999999', '56.430000', '51.510000', '51.520000', '52.410000', '23.520000'),
+('2018-09-08 19:23:35', '35.250000', '12.310000', '99.999999', '41.410000', '99.999999', '56.430000', '51.510000', '51.520000', '52.410000', '23.520000'),
+('2018-09-08 19:23:56', '35.250000', '12.310000', '99.999999', '41.410000', '99.999999', '56.430000', '51.510000', '51.520000', '52.410000', '23.520000');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
