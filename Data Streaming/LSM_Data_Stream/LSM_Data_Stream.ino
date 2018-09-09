@@ -1,5 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
 
 const char* ssid = "J7";
 const char* password = "asasasas";
@@ -15,7 +16,30 @@ float Mx;
 float My;
 float Mz;
 
-char request[35];
+String heading = String();
+String gx = String();
+String gy = String();
+String gz = String();
+String ax = String();
+String ay = String();
+String az = String();
+String mx = String();
+String my = String();
+String mz = String();
+
+//int heading;
+//int gx;
+//int gy;
+//int gz;
+//int ax;
+//int ay;
+//int az;
+//int mx;
+//int my;
+//int mz;
+
+
+String request;
 
 void setup () {
 
@@ -34,10 +58,21 @@ void setup () {
 
 void loop() {
 
+  heading = Heading * 10000;
+  gx = int(Gx * 10000);
+  gy = int(Gy * 10000);
+  gz = int(Gz * 10000);
+  ax = int(Ax * 10000);
+  ay = int(Ay * 10000);
+  az = int(Az * 10000);
+  mx = int(Mx * 10000);
+  my = int(My * 10000);
+  mz = int(Mz * 10000);
+
   if (WiFi.status() == WL_CONNECTED) { //Check WiFi connection status
 
     HTTPClient http;  //Declare an object of class HTTPClient
-    request = "http://192.168.0.101/esp/?Heading=" + Heading + "&Gx=" + Gx + "&Gy=" + Gy + "&Gz=" + Gz + "&Ax=" + Ax + "&Ay=" + Ay + "&Az=" + Az + "&Mx=" + Mx + "&My=" + My + "&Mz=" + Mz;
+    request = "http://192.168.0.101/esp/?Heading=" + heading + "&Gx=" + gx + "&Gy=" + gy + "&Gz=" + gz + "&Ax=" + ax + "&Ay=" + ay + "&Az=" + az + "&Mx=" + mx + "&My=" + my + "&Mz=" + mz;
     http.begin(request);         //Specify request destination
     int httpCode = http.GET();                                                                  //Send the request
 
