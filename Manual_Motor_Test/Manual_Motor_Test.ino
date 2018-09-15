@@ -1,10 +1,10 @@
-int m1pwm = 5;
-int m2pwm = 13;
+int m1pwm = 13;
+int m2pwm = 5;
 int m3pwm = 10;
-int m1p1 = 6;
-int m1p2 = 7;
-int m2p1 = 12;
-int m2p2 = 11;
+int m1p1 = 11;
+int m1p2 = 12;
+int m2p1 = 6;
+int m2p2 = 7;
 int m3p1 = 8;
 int m3p2 = 9;
 
@@ -24,6 +24,8 @@ void setup() {
   pinMode(m2p2, OUTPUT);
   pinMode(m3p1, OUTPUT);
   pinMode(m3p2, OUTPUT);
+  
+  hard_brake(255);
 }
 
 void loop() {
@@ -32,30 +34,18 @@ void loop() {
 
 
 void forward(int pwm) {
-  digitalWrite(m1p1, HIGH);
-  digitalWrite(m1p2, LOW);
+  digitalWrite(m1p1, LOW);
+  digitalWrite(m1p2, HIGH);
   digitalWrite(m2p1, LOW);
   digitalWrite(m2p2, HIGH);
   digitalWrite(m3p1, HIGH);
   digitalWrite(m3p2, LOW);
-  analogWrite(m1pwm, pwm * 0.5);
-  analogWrite(m2pwm, pwm * 1.54);
-  analogWrite(m3pwm, pwm * 0.5);
+  analogWrite(m1pwm, pwm);
+  analogWrite(m2pwm, pwm);
+  analogWrite(m3pwm, pwm);
 }
 
 void backward(int pwm) {
-  digitalWrite(m1p1, LOW);
-  digitalWrite(m1p2, HIGH);
-  digitalWrite(m2p1, HIGH);
-  digitalWrite(m2p2, LOW);
-  digitalWrite(m3p1, LOW);
-  digitalWrite(m3p2, HIGH);
-  analogWrite(m1pwm, pwm * 0.866);
-  analogWrite(m2pwm, pwm);
-  analogWrite(m3pwm, pwm * 0.866);
-}
-
-void left(int pwm) {
   digitalWrite(m1p1, HIGH);
   digitalWrite(m1p2, LOW);
   digitalWrite(m2p1, HIGH);
@@ -63,24 +53,24 @@ void left(int pwm) {
   digitalWrite(m3p1, LOW);
   digitalWrite(m3p2, HIGH);
   analogWrite(m1pwm, pwm);
-  analogWrite(m2pwm, pwm * 0.866);
-  analogWrite(m3pwm, pwm * 0.866);
+  analogWrite(m2pwm, pwm);
+  analogWrite(m3pwm, pwm);
+}
+
+void left(int pwm) {
+  digitalWrite(m1p1, LOW);
+  digitalWrite(m1p2, LOW);
+  digitalWrite(m2p1, LOW);
+  digitalWrite(m2p2, HIGH);
+  digitalWrite(m3p1, LOW);
+  digitalWrite(m3p2, HIGH);
+  analogWrite(m1pwm, pwm);
+  analogWrite(m2pwm, pwm);
+  analogWrite(m3pwm, pwm);
 }
 
 void right(int pwm) {
   digitalWrite(m1p1, LOW);
-  digitalWrite(m1p2, HIGH);
-  digitalWrite(m2p1, LOW);
-  digitalWrite(m2p2, HIGH);
-  digitalWrite(m3p1, HIGH);
-  digitalWrite(m3p2, LOW);
-  analogWrite(m1pwm, pwm);
-  analogWrite(m2pwm, pwm * 0.866);
-  analogWrite(m3pwm, pwm * 0.866);
-}
-
-void clock_wise(int pwm) {
-  digitalWrite(m1p1, HIGH);
   digitalWrite(m1p2, LOW);
   digitalWrite(m2p1, HIGH);
   digitalWrite(m2p2, LOW);
@@ -90,11 +80,23 @@ void clock_wise(int pwm) {
   analogWrite(m2pwm, pwm);
   analogWrite(m3pwm, pwm);
 }
+
+void clock_wise(int pwm) {
+  digitalWrite(m1p1, HIGH);
+  digitalWrite(m1p2, LOW);
+  digitalWrite(m2p1, LOW);
+  digitalWrite(m2p2, HIGH);
+  digitalWrite(m3p1, HIGH);
+  digitalWrite(m3p2, LOW);
+  analogWrite(m1pwm, pwm);
+  analogWrite(m2pwm, pwm);
+  analogWrite(m3pwm, pwm);
+}
 void anti_clock_wise(int pwm) {
   digitalWrite(m1p1, LOW);
   digitalWrite(m1p2, HIGH);
-  digitalWrite(m2p1, LOW);
-  digitalWrite(m2p2, HIGH);
+  digitalWrite(m2p1, HIGH);
+  digitalWrite(m2p2, LOW);
   digitalWrite(m3p1, LOW);
   digitalWrite(m3p2, HIGH);
   analogWrite(m1pwm, pwm);
