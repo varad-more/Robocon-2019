@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
+#include <Wire.h>
 
 const char* ssid = "abhijit";
 const char* password = "mohan@123";
@@ -30,7 +31,8 @@ String mz = String();
 String request;
 
 void setup () {
-
+  Wire.begin(); //Address here
+  Wire.onReceive(receiveEvent);
   Serial.begin(9600);
   WiFi.begin(ssid, password);
 
@@ -79,3 +81,56 @@ void loop() {
 
 }
 
+void receiveEvent(int howMany) {
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Heading = Wire.read();    // receive byte as an integer
+  //Serial.println(x);         // print the integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Gx = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Gy = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Gz = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Ax = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Ay = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Az = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Mx = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  My = Wire.read();    // receive byte as an integer
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  Mz = Wire.read();    // receive byte as an integer
+}

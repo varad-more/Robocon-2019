@@ -23,13 +23,11 @@ void loop() {
   if (Xbox.XboxReceiverConnected) {
     for (uint8_t i = 0; i < 4; i++) {
       if (Xbox.Xbox360Connected[i]) {
+//        Serial.println(i);
 
         if (Xbox.getButtonPress(L2, i)) {
-//          Serial.print("L2: ");
-//          Serial.print(Xbox.getButtonPress(L2, i));
-          Serial.println(Xbox.getAnalogHat(RightHatX, i) / 131);
-          Serial.println(Xbox.getAnalogHat(RightHatY, i) / 131);
-
+          Serial.print("L2: ");
+          Serial.print(Xbox.getButtonPress(L2, i));
         }
 
         if (Xbox.getButtonPress(R2, i)) {
@@ -55,50 +53,47 @@ void loop() {
 
 
         //
-        if (Xbox.getAnalogHat(RightHatX, i) < -5000) {
-          // Serial.print(F("RightHatX: "));
           Serial.println(Xbox.getAnalogHat(RightHatX, i) / 131);
-        }
 
-        if (Xbox.getAnalogHat(RightHatX, i) > 5000) {
+        if (Xbox.getAnalogHat(RightHatX, i) > 7500) {
           // Serial.print(F("RightHatX: "));
           Serial.println(Xbox.getAnalogHat(RightHatX, i) / 131);
         }
 
         //
-        if (Xbox.getAnalogHat(RightHatY, i) < -5000) {
+        if (Xbox.getAnalogHat(RightHatY, i) < -7500) {
           // Serial.print(F("RightHatY: "));
           Serial.println(Xbox.getAnalogHat(RightHatY, i) / 131);
         }
 
-        if (Xbox.getAnalogHat(RightHatY, i) > 5000) {
+        if (Xbox.getAnalogHat(RightHatY, i) > 7500) {
           // Serial.print(F("RightHatY: "));
           Serial.println(Xbox.getAnalogHat(RightHatY, i) / 131);
         }
 
         if (Xbox.getButtonClick(UP, i)) {
-          Xbox.setLedOn(LED1, i);
+//          Xbox.setLedOn(LED1, i);
           Serial.println(F("Up"));
         }
         if (Xbox.getButtonClick(DOWN, i)) {
-          Xbox.setLedOn(LED4, i);
+//          Xbox.setLedOn(LED4, i);
           Serial.println(F("Down"));
         }
         if (Xbox.getButtonClick(LEFT, i)) {
-          Xbox.setLedOn(LED3, i);
+//          Xbox.setLedOn(LED3, i);
           Serial.println(F("Left"));
         }
         if (Xbox.getButtonClick(RIGHT, i)) {
-          Xbox.setLedOn(LED2, i);
+//          Xbox.setLedOn(LED2, i);
           Serial.println(F("Right"));
         }
 
         if (Xbox.getButtonClick(START, i)) {
-          Xbox.setLedMode(ALTERNATING, i);
+//          Xbox.setLedMode(ALTERNATING, i);
           Serial.println(F("Start"));
         }
         if (Xbox.getButtonClick(BACK, i)) {
-          Xbox.setLedBlink(ALL, i);
+//          Xbox.setLedBlink(ALL, i);
           Serial.println(F("Back"));
         }
         if (Xbox.getButtonClick(L3, i))

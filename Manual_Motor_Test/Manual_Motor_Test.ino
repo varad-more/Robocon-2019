@@ -24,14 +24,19 @@ void setup() {
   pinMode(m2p2, OUTPUT);
   pinMode(m3p1, OUTPUT);
   pinMode(m3p2, OUTPUT);
-  
+
   hard_brake(255);
 }
 
 void loop() {
-
+  for (int i = 0; i < 30; i++) {
+    delay(5);
+    forward(i);
+  }
+  delay(5000);
+  soft_brake();
+  delay(1000);
 }
-
 
 void forward(int pwm) {
   digitalWrite(m1p1, LOW);
@@ -40,7 +45,7 @@ void forward(int pwm) {
   digitalWrite(m2p2, HIGH);
   digitalWrite(m3p1, HIGH);
   digitalWrite(m3p2, LOW);
-  analogWrite(m1pwm, pwm);
+  analogWrite(m1pwm, pwm * 2.25);
   analogWrite(m2pwm, pwm);
   analogWrite(m3pwm, pwm);
 }
