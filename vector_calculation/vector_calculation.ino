@@ -14,46 +14,49 @@ void clock_wise(int);
 void anti_clock_wise(int);
 void hard_brake(int);
 void soft_brake();
-void locomotion(double, int);
+void motors_left(char *);
+void motors_left(char *, char *);
+void motors_right(char *);
+void motors_right(char *, char *);
+//void locomotion(double, int);
 
-struct vector {
+typedef struct vector {
   double Direction;
   int Magnitude;
 };
 
-struct motor {
+typedef struct motor {
   int p1;
   int p2;
   int pwm;
-}
-
-struct motor M1;
-struct motor M2;
-struct motor M3;
-
-#define m1pwm 50
-#define m2pwm 30
-#define m3pwm 20
-M1.p1 40;
-M1.p2 41;
-M2.p1 42;
-M2.p2 43;
-M3.p1 44;
-M3.p2 45;
+  char HS = 'x';
+};
 
 struct vector Vector;
+struct motor M_1, M_2, M_3;
 
 double vector_direction(uint8_t);
 int vector_magnitude(uint8_t);
 
 void setup() {
+
+  M_1.pwm = 5;
+  M_2.pwm = 6;
+  M_3.pwm = 7;
+  M_1.p1 = 40;
+  M_1.p2 = 41;
+  M_2.p1 = 42;
+  M_2.p2 = 43;
+  M_3.p1 = 44;
+  M_3.p2 = 45;
+
   Serial.begin(115200);
-  pinMode(m1p1, OUTPUT);
-  pinMode(m1p2, OUTPUT);
-  pinMode(m2p1, OUTPUT);
-  pinMode(m2p2, OUTPUT);
-  pinMode(m3p1, OUTPUT);
-  pinMode(m3p2, OUTPUT);
+  pinMode(M_1.p1, OUTPUT);
+  pinMode(M_1.p2, OUTPUT);
+  pinMode(M_2.p1, OUTPUT);
+  pinMode(M_2.p2, OUTPUT);
+  pinMode(M_3.p1, OUTPUT);
+  pinMode(M_3.p2, OUTPUT);
 
   hard_brake(255);
 
@@ -70,28 +73,63 @@ void loop() {
     for (uint8_t i = 0; i < 4; i++) {
       if (Xbox.Xbox360Connected[i]) {
 
-        //ANTICLOCKWISE
-        if (Xbox.getButtonPress(L1, i)) {
-          anti_clock_wise(40);
-        }
 
         //CLOCKWISE
         if (Xbox.getButtonPress(R1, i)) {
           clock_wise(40);
+          Serial.println("Clock");
         }
 
-        else {
+        //ANTICLOCKWISE
+        else if (Xbox.getButtonPress(L1, i)) {
+          anti_clock_wise(40);
+          Serial.println("Anticlock");
+        }
+
+
+        else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i)) {
           //GET VECTOR DIRECTION
           Vector.Direction = vector_direction(i);
-          Serial.print(Vector.Direction);
-          Serial.print("\t");
+          //          Serial.print(Vector.Direction);
+          //          Serial.print("\t");
 
           //GET VECTOR MAGNITUDE
           Vector.Magnitude = vector_magnitude(i);
-          Serial.print(Vector.Magnitude);
-          Serial.println();
+          //          Serial.print(Vector.Magnitude);
+          //          Serial.println();
 
-          locomotion(Vector.Direction, Vector.Magnitude);
+          //          locomotion(Vector.Direction, Vector.Magnitude);
+          if ((Vector.Direction > 337.5 && Vector.Direction < 360) || (Vector.Direction < 22.5 && Vector.Direction > 0)) {
+            Serial.println("right");
+            
+          }
+          else if (Vector.Direction > 25.5 && Vector.Direction < 67.5) {
+            Serial.println("forward right");
+          }
+          else if (Vector.Direction > 67.5 && Vector.Direction < 112.5) {
+//            Serial.println("forward")
+            motors_left(&M_2.HS,&M_3.HS);
+            motors_right(&M_1.HS);
+            Serial.print(M_1.HS);
+            Serial.print(M_2.HS);
+            Serial.println(M_3.HS);
+          }
+          else if (Vector.Direction > 112.5 && Vector.Direction < 157.5) {
+            Serial.println("forward left");
+          }
+          else if (Vector.Direction > 157.5 && Vector.Direction < 202.5) {
+            Serial.println("left");
+          }
+          else if (Vector.Direction > 202.5 && Vector.Direction < 247.5) {
+            Serial.println("backward left");
+          }
+          else if (Vector.Direction > 247.5 && Vector.Direction < 292.5) {
+            Serial.println("backward");
+          }
+          else if (Vector.Direction > 292.5 && Vector.Direction < 337.5) {
+            Serial.println("backward right");
+          }
+
 
         }
       }
@@ -109,7 +147,7 @@ double vector_direction(uint8_t i)
   if (Rx > -threshold && Rx < threshold && Ry > -threshold && Ry < threshold)
   {
     soft_brake();
-    Serial.print("\tStop\t");
+    //    Serial.print("\tStop\t");
     return 500;     //distinct stop value
   }
   else
@@ -148,49 +186,64 @@ int vector_magnitude(uint8_t i) {
 
 
 void clock_wise(int pwm) {
-  digitalWrite(m1p1, HIGH);
-  digitalWrite(m1p2, LOW);
-  digitalWrite(m2p1, LOW);
-  digitalWrite(m2p2, HIGH);
-  digitalWrite(m3p1, HIGH);
-  digitalWrite(m3p2, LOW);
-  analogWrite(m1pwm, pwm);
-  analogWrite(m2pwm, pwm);
-  analogWrite(m3pwm, pwm);
+  digitalWrite(M_1.p1, HIGH);
+  digitalWrite(M_1.p2, LOW);
+  digitalWrite(M_2.p1, LOW);
+  digitalWrite(M_2.p2, HIGH);
+  digitalWrite(M_3.p1, HIGH);
+  digitalWrite(M_3.p2, LOW);
+  analogWrite(M_1.pwm, pwm);
+  analogWrite(M_2.pwm, pwm);
+  analogWrite(M_3.pwm, pwm);
 }
 
 void anti_clock_wise(int pwm) {
-  digitalWrite(m1p1, LOW);
-  digitalWrite(m1p2, HIGH);
-  digitalWrite(m2p1, HIGH);
-  digitalWrite(m2p2, LOW);
-  digitalWrite(m3p1, LOW);
-  digitalWrite(m3p2, HIGH);
-  analogWrite(m1pwm, pwm);
-  analogWrite(m2pwm, pwm);
-  analogWrite(m3pwm, pwm);
+  digitalWrite(M_1.p1, LOW);
+  digitalWrite(M_1.p2, HIGH);
+  digitalWrite(M_2.p1, HIGH);
+  digitalWrite(M_2.p2, LOW);
+  digitalWrite(M_3.p1, LOW);
+  digitalWrite(M_3.p2, HIGH);
+  analogWrite(M_1.pwm, pwm);
+  analogWrite(M_2.pwm, pwm);
+  analogWrite(M_3.pwm, pwm);
 }
 
 void hard_brake(int intensity) {
-  digitalWrite(m1p1, HIGH);
-  digitalWrite(m1p2, HIGH);
-  digitalWrite(m2p1, HIGH);
-  digitalWrite(m2p2, HIGH);
-  digitalWrite(m3p1, HIGH);
-  digitalWrite(m3p2, HIGH);
-  analogWrite(m1pwm, intensity);
-  analogWrite(m2pwm, intensity);
-  analogWrite(m3pwm, intensity);
+  digitalWrite(M_1.p1, HIGH);
+  digitalWrite(M_1.p2, HIGH);
+  digitalWrite(M_2.p1, HIGH);
+  digitalWrite(M_2.p2, HIGH);
+  digitalWrite(M_3.p1, HIGH);
+  digitalWrite(M_3.p2, HIGH);
+  analogWrite(M_1.pwm, intensity);
+  analogWrite(M_2.pwm, intensity);
+  analogWrite(M_3.pwm, intensity);
 }
 
 void soft_brake() {
-  digitalWrite(m1p1, LOW);
-  digitalWrite(m1p2, LOW);
-  digitalWrite(m2p1, LOW);
-  digitalWrite(m2p2, LOW);
-  digitalWrite(m3p1, LOW);
-  digitalWrite(m3p2, LOW);
-  analogWrite(m1pwm, 35);
-  analogWrite(m2pwm, 35);
-  analogWrite(m3pwm, 35);
+  digitalWrite(M_1.p1, LOW);
+  digitalWrite(M_1.p2, LOW);
+  digitalWrite(M_2.p1, LOW);
+  digitalWrite(M_2.p2, LOW);
+  digitalWrite(M_3.p1, LOW);
+  digitalWrite(M_3.p2, LOW);
+  analogWrite(M_1.pwm, 35);
+  analogWrite(M_2.pwm, 35);
+  analogWrite(M_3.pwm, 35);
+}
+
+void motors_left(char *motor) {
+  motor = "L";
+}
+void motors_left(char *motor_l, char *motor_r) {
+  *motor_l = "L";
+  *motor_r = "L";
+}
+void motors_right(char *motor) {
+  *motor = "R";
+}
+void motors_right(char *motor_l, char *motor_r) {
+  motor_l = "R";
+  motor_r = "R";
 }
