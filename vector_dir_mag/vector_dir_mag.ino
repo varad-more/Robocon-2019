@@ -5,7 +5,8 @@
 #endif
 #include <SPI.h>
 
-#define maxSpeed 100
+#define maxSpeed 150
+int xboxNumber = 0;
 
 USB Usb;
 XBOXRECV Xbox(&Usb);
@@ -73,68 +74,79 @@ void setup() {
 }
 
 void loop() {
-  Usb.Task();
-  if (Xbox.XboxReceiverConnected) {
-    for (uint8_t i = 0; i < 4; i++) {
-      if (Xbox.Xbox360Connected[i]) {
-        //CLOCKWISE
-        if (Xbox.getButtonPress(R1, i)) {
-          clock_wise(40);
-          Serial.println("Clock");
-        }
-        //ANTICLOCKWISE
-        else if (Xbox.getButtonPress(L1, i)) {
-          anti_clock_wise(40);
-          Serial.println("Anticlock");
-        }
-        else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i)) {
-          //GET VECTOR DIRECTION
-          Vector.Direction = vector_direction(i);
-          //          Serial.print(Vector.Direction);
-          //          Serial.print("\t");
+  do {
+    Usb.Task();
+    if (Xbox.XboxReceiverConnected) {
+      for (uint8_t i = 0; i < 4; i++) {
+        if (Xbox.Xbox360Connected[i]) {
+          xboxNumber = i;
+          //CLOCKWISE
+          if (Xbox.getButtonPress(B, i)) {
+            hard_brake(255);
+          }
+          else if (Xbox.getButtonPress(R1, i)) {
+            clock_wise(40);
+            Serial.println("Clock");
+          }
+          //ANTICLOCKWISE
+          else if (Xbox.getButtonPress(L1, i)) {
+            anti_clock_wise(40);
+            Serial.println("Anticlock");
+          }
+          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i)) {
+            //GET VECTOR DIRECTION
+            Vector.Direction = vector_direction(i);
+            //          Serial.print(Vector.Direction);
+            //          Serial.print("\t");
 
-          //GET VECTOR MAGNITUDE
-          Vector.Magnitude = vector_magnitude(i);
-          //          Serial.print(Vector.Magnitude);
-          //          Serial.println();
+            //GET VECTOR MAGNITUDE
+            Vector.Magnitude = vector_magnitude(i);
+            //          Serial.print(Vector.Magnitude);
+            //          Serial.println();
 
-          //          locomotion(Vector.Direction, Vector.Magnitude);
-          if ((Vector.Direction > 337.5 && Vector.Direction < 360) || (Vector.Direction < 22.5 && Vector.Direction > 0)) {
-            Serial.println("right");
-            right(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 25.5 && Vector.Direction < 67.5) {
-            Serial.println("forward right");
-            forward_right(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 67.5 && Vector.Direction < 112.5) {
-            Serial.println("forward");
-            forward(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 112.5 && Vector.Direction < 157.5) {
-            Serial.println("forward left");
-            forward_left(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 157.5 && Vector.Direction < 202.5) {
-            Serial.println("left");
-            left(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 202.5 && Vector.Direction < 247.5) {
-            Serial.println("backward left");
-            backward_left(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 247.5 && Vector.Direction < 292.5) {
-            Serial.println("backward");
-            backward(Vector.Magnitude);
-          }
-          else if (Vector.Direction > 292.5 && Vector.Direction < 337.5) {
-            Serial.println("backward right");
-            backward_right(Vector.Magnitude);
+            //          locomotion(Vector.Direction, Vector.Magnitude);
+            if ((Vector.Direction > 337.5 && Vector.Direction < 360) || (Vector.Direction < 22.5 && Vector.Direction > 0)) {
+              Serial.println("right");
+              right(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 25.5 && Vector.Direction < 67.5) {
+              Serial.println("forward right");
+              forward_right(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 67.5 && Vector.Direction < 112.5) {
+              Serial.println("forward");
+              forward(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 112.5 && Vector.Direction < 157.5) {
+              Serial.println("forward left");
+              forward_left(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 157.5 && Vector.Direction < 202.5) {
+              Serial.println("left");
+              left(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 202.5 && Vector.Direction < 247.5) {
+              Serial.println("backward left");
+              backward_left(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 247.5 && Vector.Direction < 292.5) {
+              Serial.println("backward");
+              backward(Vector.Magnitude);
+            }
+            else if (Vector.Direction > 292.5 && Vector.Direction < 337.5) {
+              Serial.println("backward right");
+              backward_right(Vector.Magnitude);
+            }
           }
         }
+        //      else {
+        //        soft_brake();
+        //      }
       }
     }
   }
+  while(Xbox.Xbox360Connected[xboxNumber]);
+  soft_brake();
 }
 
 double vector_direction(uint8_t i)
@@ -241,9 +253,9 @@ void forward(int pwm)
   digitalWrite(M_2.p2, HIGH);
   digitalWrite(M_3.p1, LOW);
   digitalWrite(M_3.p2, HIGH);
-  analogWrite(M_1.pwm, pwm*0.33);
-  analogWrite(M_2.pwm, pwm*0.33);
-  analogWrite(M_3.pwm, pwm*0.67);
+  analogWrite(M_1.pwm, pwm * 0.33);
+  analogWrite(M_2.pwm, pwm * 0.33);
+  analogWrite(M_3.pwm, pwm * 0.67);
 }
 void backward(int pwm)
 {
@@ -253,9 +265,9 @@ void backward(int pwm)
   digitalWrite(M_2.p2, LOW);
   digitalWrite(M_3.p1, HIGH);
   digitalWrite(M_3.p2, LOW);
-  analogWrite(M_1.pwm, pwm*0.33);
-  analogWrite(M_2.pwm, pwm*0.33);
-  analogWrite(M_3.pwm, pwm*0.67);
+  analogWrite(M_1.pwm, pwm * 0.33);
+  analogWrite(M_2.pwm, pwm * 0.33);
+  analogWrite(M_3.pwm, pwm * 0.67);
 }
 void left(int pwm)
 {
@@ -265,9 +277,9 @@ void left(int pwm)
   digitalWrite(M_2.p2, LOW);
   digitalWrite(M_3.p1, LOW);
   digitalWrite(M_3.p2, HIGH);
-  analogWrite(M_1.pwm, pwm*0.58);
-  analogWrite(M_2.pwm, pwm*0.38);
-  analogWrite(M_3.pwm, pwm*0);
+  analogWrite(M_1.pwm, pwm * 0.58);
+  analogWrite(M_2.pwm, pwm * 0.38);
+  analogWrite(M_3.pwm, pwm * 0);
 }
 void right(int pwm)
 {
@@ -277,9 +289,9 @@ void right(int pwm)
   digitalWrite(M_2.p2, HIGH);
   digitalWrite(M_3.p1, LOW);
   digitalWrite(M_3.p2, HIGH);
-  analogWrite(M_1.pwm, pwm*0.58);
-  analogWrite(M_2.pwm, pwm*0.38);
-  analogWrite(M_3.pwm, pwm*0);
+  analogWrite(M_1.pwm, pwm * 0.58);
+  analogWrite(M_2.pwm, pwm * 0.38);
+  analogWrite(M_3.pwm, pwm * 0);
 }
 void forward_left(int pwm)
 {
@@ -289,9 +301,9 @@ void forward_left(int pwm)
   digitalWrite(M_2.p2, LOW);
   digitalWrite(M_3.p1, LOW);
   digitalWrite(M_3.p2, HIGH);
-  analogWrite(M_1.pwm, pwm*0.91);
-  analogWrite(M_2.pwm, pwm*0.05);
-  analogWrite(M_3.pwm, pwm*0.67);
+  analogWrite(M_1.pwm, pwm * 0.91);
+  analogWrite(M_2.pwm, pwm * 0.05);
+  analogWrite(M_3.pwm, pwm * 0.67);
 }
 void forward_right(int pwm)
 {
@@ -301,9 +313,9 @@ void forward_right(int pwm)
   digitalWrite(M_2.p2, HIGH);
   digitalWrite(M_3.p1, LOW);
   digitalWrite(M_3.p2, HIGH);
-  analogWrite(M_1.pwm, pwm*0.25);
-  analogWrite(M_2.pwm, pwm*0.71);
-  analogWrite(M_3.pwm, pwm*0.67);
+  analogWrite(M_1.pwm, pwm * 0.25);
+  analogWrite(M_2.pwm, pwm * 0.71);
+  analogWrite(M_3.pwm, pwm * 0.67);
 }
 void backward_left(int pwm)
 {
@@ -313,9 +325,9 @@ void backward_left(int pwm)
   digitalWrite(M_2.p2, LOW);
   digitalWrite(M_3.p1, HIGH);
   digitalWrite(M_3.p2, LOW);
-  analogWrite(M_1.pwm, pwm*0.25);
-  analogWrite(M_2.pwm, pwm*0.71);
-  analogWrite(M_3.pwm, pwm*0.67);
+  analogWrite(M_1.pwm, pwm * 0.25);
+  analogWrite(M_2.pwm, pwm * 0.71);
+  analogWrite(M_3.pwm, pwm * 0.67);
 }
 void backward_right(int pwm)
 {
@@ -325,7 +337,7 @@ void backward_right(int pwm)
   digitalWrite(M_2.p2, HIGH);
   digitalWrite(M_3.p1, HIGH);
   digitalWrite(M_3.p2, LOW);
-  analogWrite(M_1.pwm, pwm*0.91);
-  analogWrite(M_2.pwm, pwm*0.05);
-  analogWrite(M_3.pwm, pwm*0.67);
+  analogWrite(M_1.pwm, pwm * 0.91);
+  analogWrite(M_2.pwm, pwm * 0.05);
+  analogWrite(M_3.pwm, pwm * 0.67);
 }
