@@ -45,44 +45,68 @@ void setup()
 
 }
 
+void loop()
+{
+
+
+  setpoint= //to be taken from controller
+forward=90
+right=0
+left =180
+backward =270
+
+}
+
+
+
+
 void pid()
 {
   float heading = analogRead(_____);
   // If no line is detected, stay at the position
+
+    error = heading - setPoint;   // Calculate the deviation from position to the set point
+    motorSpeed = Kp * error + Kd * (error - lastError);   // Applying formula of PID
+    lastError = error;    // Store current error as previous error for next iteration use
+
+
   if (heading > 360) //test condition
 
   {
-    motor1.run(RELEASE);
-    motor2.run(RELEASE);
-    motor3.run(RELEASE);
+    motor1.run( );       //Anticlockwise
+    motor2.run(RELEASE); //Anticlockwise
+    motor3.run(RELEASE); //Clockwise
   }
 
-  if (heading == setPoint) {
+  if (heading == setpoint) {
     motor1.setSpeed();
     motor2.setSpeed();
     motor3.setSpeed();
   }
-  else if (heading < setpoint + 20 || heading > setpoint)
+  else if (heading < setpoint + 22.5 || heading > setpoint - 22.5 )
   {
+    
 
-    error = heading - setPoint;   // Calculate the deviation from position to the set point
-    motorSpeed = Kp * error + Kd * (error - lastError);   // Applying formula of PID
-    lastError = error;    // Store current error as previous error for next iteration use
+  if (setpoint=0)
+    motor1 =;   //Clockwise
+    motor2 =;   //Anticlockwise
+    motor3 =0;   
+  
+  else if (setpoint=90)
+    motor1 =;   //Anticlockwise
+    motor2 =;   //Anticlockwise
+    motor3 =;   //Clockwise
 
-    motor1 =;
-    motor2 =;
-    motor3 =;
-  }
+  else if (setpoint=180)
+    motor1 =;   //Antilockwise
+    motor2 =;   //Clockwise
+    motor3 =0;   
 
+ else if (setpoint=270)
+    motor1 =;   //Clockwise
+    motor2 =;   //Clockwise
+    motor3 =;   //Antilockwise
 
-  else if (heading > setpoint - 20 || heading < setpoint)
-  {
-    error = heading - setPoint;   // Calculate the deviation from position to the set point
-    motorSpeed = Kp * error + Kd * (error - lastError);   // Applying formula of PID
-    lastError = error;    // Store current error as previous error for next iteration use
-    motor1 =;
-    motor2 =;
-    motor3 =;
   }
 
 }
