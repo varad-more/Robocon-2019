@@ -5,7 +5,8 @@
 #endif
 #include <SPI.h>
 
-#define maxSpeed 150
+#define maxSpeed 255
+
 int xboxNumber = 0;
 
 USB Usb;
@@ -145,7 +146,7 @@ void loop() {
       }
     }
   }
-  while(Xbox.Xbox360Connected[xboxNumber]);
+  while (Xbox.Xbox360Connected[xboxNumber]);
   soft_brake();
 }
 
@@ -153,7 +154,7 @@ double vector_direction(uint8_t i)
 {
   double Rx = 0, Ry = 0;
   double angle = 0, dybydx = 0;
-  double threshold = 7500;
+  double threshold = 12000;
   Rx = Xbox.getAnalogHat(LeftHatX, i);
   Ry = Xbox.getAnalogHat(LeftHatY, i);
   if (Rx > -threshold && Rx < threshold && Ry > -threshold && Ry < threshold)
@@ -255,7 +256,7 @@ void forward(int pwm)
   digitalWrite(M_3.p2, HIGH);
   analogWrite(M_1.pwm, pwm * 0.33);
   analogWrite(M_2.pwm, pwm * 0.33);
-  analogWrite(M_3.pwm, pwm * 0.67);
+  analogWrite(M_3.pwm, pwm * 0.79);
 }
 void backward(int pwm)
 {
@@ -267,7 +268,7 @@ void backward(int pwm)
   digitalWrite(M_3.p2, LOW);
   analogWrite(M_1.pwm, pwm * 0.33);
   analogWrite(M_2.pwm, pwm * 0.33);
-  analogWrite(M_3.pwm, pwm * 0.67);
+  analogWrite(M_3.pwm, pwm * 0.54);
 }
 void left(int pwm)
 {
