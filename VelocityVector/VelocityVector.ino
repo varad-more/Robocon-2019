@@ -50,7 +50,7 @@ void loop() {
   dof.readGyro();
   dof.readAccel();
   dof.readMag();
-  
+
   // put your main code here, to run repeatedly:
   float Ax = dof.calcAccel(dof.ax) - _xbias, Ay = dof.calcAccel(dof.ay) - _ybias;
 
@@ -82,7 +82,7 @@ void loop() {
   float theeta = atan(integral_y / integral_x); //int(Ay*1000) / int(Ax*1000));
   Serial.print("  theeta:  ");
   Serial.print(theeta * 180 / PI);
-  
+
   printHeading((float) dof.mx, (float) dof.my);
   delay(100);
 }
