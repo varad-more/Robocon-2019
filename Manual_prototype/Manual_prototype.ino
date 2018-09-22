@@ -37,8 +37,8 @@ int vector_magnitude(uint8_t);
 void hard_brake(int);
 void soft_brake();
 
-int* calc_motor_speeds(int v, int theta);
-char* calc_motor_direction(int theta);
+int* calc_motor_speeds(int v, double  theta);
+char* calc_motor_direction(double  theta);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
 int* debug_serial_input();
@@ -113,7 +113,7 @@ void loop() {
         arr = debug_serial_input();
         motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
         dir = calc_motor_direction(Vector.Direction);
-        set_motor_values(arr , dir);
+        set_motor_values(motor_speed , dir);
         
         Serial.print(" ");
         Serial.print(arr[1]);
@@ -160,7 +160,7 @@ void soft_brake() {
 }
 
 
-int* calc_motor_speeds(int v, int theta)
+int* calc_motor_speeds(int v, double  theta)
 {
   static int arr[3];
   arr[0] = v * (cos(theta) * 0.866 + sin(theta) * 0.5);
