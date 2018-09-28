@@ -1,12 +1,12 @@
 int m1pwm = 5;
 int m2pwm = 6;
 int m3pwm = 7;
-int m1p1 = 40;
-int m1p2 = 41;
-int m2p1 = 42;
-int m2p2 = 43;
-int m3p1 = 44;
-int m3p2 = 45;
+int m1p1 = 38;//40;
+int m1p2 = 39;//41;
+int m2p1 = 40;//42;
+int m2p2 = 41;//43;
+int m3p1 = 46;
+int m3p2 = 47;
 
 void forward(int );
 void backward(int );
@@ -33,26 +33,26 @@ void loop() {
   delay(1000);
   soft_brake();
   delay(1000);
-  backward(30);
-  delay(1000);
-  soft_brake();
-  delay(1000);
-  left(30);
-  delay(1000);
-  soft_brake();
-  delay(1000);
-  right(30);
-  delay(1000);
-  soft_brake();
-  delay(1000);
-  clock_wise(30);
-  delay(1000);
-  soft_brake();
-  delay(1000);
-  anti_clock_wise(30);
-  delay(1000);
-  soft_brake();
-  delay(1000);
+//  backward(30);
+//  delay(1000);
+//  soft_brake();
+//  delay(1000);
+//  left(30);
+//  delay(1000);
+//  soft_brake();
+//  delay(1000);
+//  right(30);
+//  delay(1000);
+//  soft_brake();
+//  delay(1000);
+//  clock_wise(30);
+//  delay(1000);
+//  soft_brake();
+//  delay(1000);
+//  anti_clock_wise(30);
+//  delay(1000);
+//  soft_brake();
+//  delay(1000);
 }
 
 void forward(int pwm) {
