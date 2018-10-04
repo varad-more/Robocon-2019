@@ -60,7 +60,7 @@ char* calc_motor_direction(int theta);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
 int* debug_serial_input();
-void debug_serial_output (int *vel, char *dir);
+void debug_serial_output (int *vel, char *dir, int x ,int y , double theta );
 
 
 void setup() {
@@ -125,7 +125,7 @@ void loop() {
           }
           else if /*(!Xbox.getAnalog(L1, i) && !Xbox.getButtonPress(R1, i)  )*/
           
-          (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) && Xbox.getAnalogHat(LeftHatX, i)>12000 && Xbox.getAnalogHat(LeftHatY, i)>12000 && Xbox.getButtonPress(R2, i)==0 )
+          (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) &&( (abs(Xbox.getAnalogHat(LeftHatX, i))>12000) || abs(Xbox.getAnalogHat(LeftHatY, i))>12000) && Xbox.getButtonPress(R2, i)==0 )
           {
             //GET VECTOR DIRECTION
              
@@ -144,15 +144,20 @@ void loop() {
         motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
         dir = calc_motor_direction(Vector.Direction);
         set_motor_values(motor_speed,dir);
-        debug_serial_output(motor_speed,dir);
+        debug_serial_output(motor_speed,dir,Xbox.getAnalogHat(LeftHatX, i),Xbox.getAnalogHat(LeftHatY, i),Vector.Direction );
             }
         }
+int *motor_speed;
+      char *dir ;
+      debug_serial_output(motor_speed,dir,Xbox.getAnalogHat(LeftHatX, i),Xbox.getAnalogHat(LeftHatY, i),Vector.Direction );
       }
+       
+   
         //debug_serial_output( motor_speed,dir);
         //delay(2000);
 //        pid (float error)
       }
-    }
+      }
   
   while (Xbox.Xbox360Connected[xboxNumber]);
   soft_brake();
@@ -306,32 +311,32 @@ double vector_direction(uint8_t i)
   double threshold = 12000;
   Rx = Xbox.getAnalogHat(LeftHatX, i);
   Ry = Xbox.getAnalogHat(LeftHatY, i);
-  if (Rx > -threshold && Rx < threshold && Ry > -threshold && Ry < threshold)
-  {
-    soft_brake();
-    //    Serial.print("\tStop\t");
-    return 500;     //distinct stop value
-  }
-  else
+//  if (Rx > -threshold && Rx < threshold && Ry > -threshold && Ry < threshold)
+//  {
+//    soft_brake();
+//    //    Serial.print("\tStop\t");
+//    return 500;     //distinct stop value
+//  }
+//  else
   {
     dybydx = (Ry / Rx);
     angle = atan(dybydx);
     if (Rx > 0 && Ry >= 0)
     {
       angle = angle  * (180 / PI);
-      angle = map(angle, 0, 90, 0, 90);
+      angle = map(angle, 0, 90, 90, 0);
     }
-    else if (Rx < 0 && Ry > 0)
+    else if (Rx <= 0 && Ry >= 0)
     {
       angle = angle  * (180 / PI);
-      angle = map(angle, -90, 0, -90, 0);// 90 180
+      angle = map(angle, -90, 0, 0, -90);// 90 180
     }
-    else if (Rx < 0 && Ry < 0)
+    else if (Rx <= 0 && Ry <= 0)
     {
       angle = angle  * (180 / PI);
       angle = map(angle, 0, 90, -90, -180);//180 270
     }
-    else if (Rx >= 0 && Ry < 0)
+    else if (Rx >= 0 && Ry <= 0)
     {
       angle = angle  * (180 / PI);
       angle = map(angle, -90, 0, 180, 90);//270 360
@@ -406,17 +411,23 @@ void anti_clock_wise(int pwm) {
 }
 
 
-void debug_serial_output(int *vel, char *dir )
+void debug_serial_output(int *vel, char *dir , int x ,int y , double  theta )
 {
-  Serial.print(vel[0]);
+//  Serial.print(vel[0]);
+//  Serial.print(" ");
+//  Serial.print(vel[1]);
+//  Serial.print(" ");
+//  Serial.print(vel[2]);
+//  Serial.print(" ");
+//  Serial.print(dir[0]);
+//  Serial.print(" ");
+//  Serial.print(dir[1]);
+//  Serial.print(" ");
+//  Serial.print(dir[2]);
+//  Serial.print(" ");
+  Serial.print(x);
   Serial.print(" ");
-  Serial.print(vel[1]);
+  Serial.print(y);
   Serial.print(" ");
-  Serial.print(vel[2]);
-  Serial.print(" ");
-  Serial.print(dir[0]);
-  Serial.print(" ");
-  Serial.print(dir[1]);
-  Serial.print(" ");
-  Serial.println(dir[2]);
+  Serial.println(theta);
 }
