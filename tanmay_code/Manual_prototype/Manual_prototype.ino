@@ -13,8 +13,8 @@ int xboxNumber = 0;
 USB Usb;
 XBOXRECV Xbox(&Usb);
 
-#define LSM9DS0_XM  0x1D // Would be 0x1E if SDO_XM is LOW
-#define LSM9DS0_G   0x6B // Would be 0x6A if SDO_G is LOW
+#define LSM9DS0_XM  0x1E // Would be 0x1E if SDO_XM is LOW
+#define LSM9DS0_G   0x6A // Would be 0x6A if SDO_G is LOW
 
 LSM9DS0 dof(MODE_I2C, LSM9DS0_G, LSM9DS0_XM);
 
@@ -22,7 +22,7 @@ LSM9DS0 dof(MODE_I2C, LSM9DS0_G, LSM9DS0_XM);
 #define PRINT_SPEED 500 // 500 ms between prints
 //#define Kp 2.5
 //#define Ki 2.5
-#define MaxSpeed 240
+#define MaxSpeed 150
 #define baseSpeed 100
 // pins need to be  redefined
 double Heading(float , float);
@@ -59,21 +59,22 @@ char* calc_motor_direction(int theta);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
 int* debug_serial_input();
-//void debug_serial_output (int *vel, char *dir);
+void debug_serial_output (int *vel, char *dir);
 
 
 void setup() {
 
-  MA.pwm = 5;
-  MB.pwm = 6;
-  MC.pwm = 7;
-  MA.dir_r = 38;
-  MA.dir_l = 39;
-  MB.dir_r = 40;
-  MB.dir_l = 41;
-  MC.dir_r = 46;
-  MC.dir_l = 47;
-
+  
+  MA.pwm = 4;
+  MB.pwm = 2;
+  MC.pwm = 3;
+  MA.dir_r = 32;
+  MA.dir_l = 30;
+  MB.dir_r = 24;
+  MB.dir_l = 22;
+  MC.dir_r = 28;
+  MC.dir_l = 26;
+  
   pinMode(MA.dir_r, OUTPUT);
   pinMode(MA.dir_l, OUTPUT);
   pinMode(MB.dir_r, OUTPUT);
@@ -113,36 +114,41 @@ void loop() {
             hard_brake(255);
           }
           else if (Xbox.getButtonPress(R1, i)) {
-            clock_wise(40);
+            clock_wise(60);
             Serial.println("Clock");
           }
           //ANTICLOCKWISE
           else if (Xbox.getButtonPress(L1, i)) {
-            anti_clock_wise(40);
+            anti_clock_wise(60);
             Serial.println("Anticlock");
           }
-          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i)) {
+          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i)  ) {
             //GET VECTOR DIRECTION
+            if (Xbox.getButtonPress(R2,i)==0 && Xbox.getAnalogHat(LeftHatX, i)<12000 && Xbox.getAnalogHat(LeftHatY, i)<12000 )
+            {soft_brake(); }
+            else 
+            {
             Vector.Direction = vector_direction(i);
             //GET VECTOR MAGNITUDE
-            Vector.Magnitude = vector_magnitude(i);
-          }
-        }
-        heading = Heading(dof.mx, dof.my);
-        error = Vector.Magnitude - heading ;
+            Vector.Magnitude = vector_magnitude(i);          
+            heading = Heading(dof.mx, dof.my);
+        // error = Vector.Magnitude - heading ;
 
         int *arr, *motor_speed;
         char *dir ;
         int *theta;
-        arr = debug_serial_input();
+        //arr = debug_serial_input();
 
         motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
         dir = calc_motor_direction(Vector.Direction);
-        set_motor_values(motor_speed  , dir);
-        debug_serial_output(calc_motor_speeds(arr[0], arr[1]), calc_motor_direction(arr[0]));
+        set_motor_values(motor_speed,dir);
+        debug_serial_output(motor_speed,dir);
+            }
+        }
+      }
         //debug_serial_output( motor_speed,dir);
         //delay(2000);
-        pid (float error)
+//        pid (float error)
       }
     }
   }
@@ -150,19 +156,19 @@ void loop() {
   soft_brake();
 }
 
-void pid(float error)
-{ // pin not yet declared
-  float heading = analogRead(_____);
-  // If no line is detected, stay at the position
-
-  // error = heading - setPoint;   // Calculate the deviation from position to the set point
-  motorSpeed = Kp * error + Kd * (error - lastError);   // Applying formula of PID
-  lastError = error;    // Store current error as previous error for next iteration use
-}
+//void pid(float error)
+//{ // pin not yet declared
+//  float heading = analogRead(_____);
+//  // If no line is detected, stay at the position
+//
+//  // error = heading - setPoint;   // Calculate the deviation from position to the set point
+//  motorSpeed = Kp * error + Kd * (error - lastError);   // Applying formula of PID
+//  lastError = error;    // Store current error as previous error for next iteration use
+//}
 
 int vector_magnitude(uint8_t i) {
   int magnitude = Xbox.getButtonPress(R2, i);
-  magnitude = map(magnitude, 0, 255, 35, maxSpeed);
+  magnitude = map(magnitude, 0, 255, 0, maxSpeed);
   return magnitude;
 }
 
@@ -199,6 +205,13 @@ int* calc_motor_speeds(int v, int theta)
   arr[0] = v * (cos(theta) * 0.866 + sin(theta) * 0.5);
   arr[1] = v * (cos(theta) * 0.866 - sin(theta) * 0.5);
   arr[2] = v * sin(theta);
+  if (arr[0]<30 && arr[0]>0)
+  {arr[0]=30;}
+  if(arr[1]<30  && arr[1]>0)
+  {arr[1]=30;}
+  if (arr[2]<30 && arr[2]>0)
+   {arr[2]=30;}
+    
   return arr;
 }
 
@@ -361,19 +374,18 @@ double Heading(float hx, float hy)
   {
     heading = map(heading, 90, 0, 90 , 180);
   }
-  Serial.print("\tHeading: ");
-  Serial.println(heading);
-  return heading ;
+//  Serial.print("\tHeading: ");
+//  Serial.println(heading);
+ return heading ;
 }
-
 
 void clock_wise(int pwm) {
   digitalWrite(MA.dir_r, HIGH);
   digitalWrite(MA.dir_l, LOW);
   digitalWrite(MB.dir_r, LOW);
   digitalWrite(MB.dir_l, HIGH);
-  digitalWrite(MB.dir_r, HIGH);
-  digitalWrite(MB.dir_l, LOW);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
@@ -384,8 +396,8 @@ void anti_clock_wise(int pwm) {
   digitalWrite(MA.dir_l, HIGH);
   digitalWrite(MB.dir_r, HIGH);
   digitalWrite(MB.dir_l, LOW);
-  digitalWrite(MB.dir_r, LOW);
-  digitalWrite(MB.dir_l, HIGH);
+  digitalWrite(MC.dir_r, LOW);
+  digitalWrite(MC.dir_l, HIGH);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);

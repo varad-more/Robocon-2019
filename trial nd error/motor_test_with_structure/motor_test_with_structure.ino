@@ -32,12 +32,19 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-    clock_wise(40);
-    delay(2000);
-    anti_clock_wise(40);
-    delay (2000);
-}
+ //  put your main code here, to run repeatedly:
+//  digitalWrite(MA.dir_r, HIGH);
+//  digitalWrite(MA.dir_l, LOW);
+  digitalWrite(MB.dir_r, LOW);
+  digitalWrite(MB.dir_l, HIGH);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
+//  analogWrite(MA.pwm, 40);
+  analogWrite(MB.pwm, 40);
+  analogWrite(MC.pwm, 40);
+}  
+
+
 
 void clock_wise(int pwm) {
   digitalWrite(MA.dir_r, HIGH);

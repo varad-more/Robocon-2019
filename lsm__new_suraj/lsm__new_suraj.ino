@@ -131,6 +131,8 @@ float abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
+int i=1;
+float refrenceheading_;
 void setup()
 {
   Serial.begin(115200); // Start serial at 38400 bps
@@ -151,6 +153,7 @@ void setup()
   dof.setGyroODR(dof.G_ODR_190_BW_125);  // Set gyro update rate to 190 Hz with the smallest bandwidth for low noise
   dof.setMagODR(dof.M_ODR_125); // Set magnetometer to update every 80 ms
   dof.calLSM9DS0(gbias, abias);
+
 }
 
 void loop()
@@ -174,81 +177,83 @@ void loop()
   deltat = ((Now - lastUpdate) / 1000000.0f); // set integration time by time elapsed since last filter update
   lastUpdate = Now;
   MadgwickQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, mx, my, mz);
-  printHeading(mx, my);
+ if(i==1)   
+ {delay(1000);
+    refrenceheading_=refrenceheading(mx,my);
+    Serial.println("refrance taken as");
+     Serial.println(refrenceheading_);
+    i++;
+ }
+
+  printHeading(mx, my,refrenceheading_);
 }
 
-void printHeading(float hx, float hy)
+void printHeading(float hx, float hy,float refrenceheading_)
 {
   float new_heading ;
-  if (hy > 0)
-  {
-    heading = 90 - (atan(hx / hy) * (180 / PI));
-  }
-  else if (hy < 0)
-  {
-    heading = - (atan(hx / hy) * (180 / PI));
-  }
-  else // hy = 0
-  {
-    if (hx < 0) heading = 180;
-    else heading = 0;
-  }
-  //  heading = atan(hx / hy) * (180 / PI);
-  //  if (hy > 0 && hx > 0)
-  //  {
-  //    float new_heading = map(heading , 90, 0, 0, 90);
-  //    Serial.print("Heading: ");
-
-  
-  //    Serial.println(new_heading , 2);
-  //  }
-  //     else if (hy > 0 && hx < 0 )
-  //    {
-  //       float new_heading = map(heading , -90, 0, 90, 180);
-  //       Serial.print("Heading: ");
-  //       Serial.println(new_heading , 2);
-  //    }
-  //   else if  (hx < 0 && hy < 0)
-  //    {
-  //      float new_heading = map(heading , 90, 0, -90, -180);
-  //      Serial.print("Heading: ");
-  //      Serial.println(new_heading , 2);
-  //    }
-  //////    if (hx>0 && hy<0)
-  //    else
-  ////    if(hx>0 && hy <0)
-  //    {
-  //   float new_heading = map(heading , 0, -90, 0, -90);
-  //      Serial.print("Heading: ");
-  //      Serial.println(new_heading , 2);
-  //    }
-  if (heading > 0  && heading < 90)
-
-  { if (hy < 0)
+   if (hy > 0)
     {
-      new_heading = map (heading, 0, 90, 0, 90);
+      heading = 90 - (atan(hx / hy) * (180 / PI));
     }
-    else
+    else if (hy < 0)
     {
-      new_heading = map (heading, 0, 90, 90, 180);
+      heading = - (atan(hx / hy) * (180 / PI));
     }
-  }
-  else if (heading > 90)
-  {
-    new_heading = map (heading, 90, 180, -180, -90);
-  }
-  else
-  {
-    new_heading = map (heading, -90, 0, -90, 0);
-  }
-  Serial.print(heading );
-  Serial.print("     hx ");
-  Serial.print(hx);
-  Serial.print(" hy");
-  Serial.print(hy);
-  Serial.print("   required values ");
-  Serial.print(new_heading);
-  Serial.println("   ");
+    else // hy = 0
+    {
+      if (hx < 0) heading = 180;
+      else heading = 0;
+    }
+//  heading = atan(hx / hy) * (180 / PI);
+//  if (hy > 0 && hx > 0)
+//  {
+//    float new_heading = map(heading , 90, 0, 0, 90);
+//    Serial.print("Heading: ");
+//    Serial.println(new_heading , 2);
+//  }
+//     else if (hy > 0 && hx < 0 )
+//    {
+//       float new_heading = map(heading , -90, 0, 90, 180);
+//       Serial.print("Heading: ");
+//       Serial.println(new_heading , 2);
+//    }
+//   else if  (hx < 0 && hy < 0)
+//    {
+//      float new_heading = map(heading , 90, 0, -90, -180);
+//      Serial.print("Heading: ");
+//      Serial.println(new_heading , 2);
+//    }
+//////    if (hx>0 && hy<0)
+//    else
+////    if(hx>0 && hy <0) 
+//    {
+//   float new_heading = map(heading , 0, -90, 0, -90);
+//      Serial.print("Heading: ");
+//      Serial.println(new_heading , 2);
+//    }
+if (heading>0  && heading <90)
+
+{ if (hy<0)
+  { new_heading= heading; }
+  else 
+  {new_heading= map (heading,0,90,90,180);}
+}
+else if (heading>90)
+{ new_heading=map (heading,90,180,-180,-90);}
+else 
+{new_heading =heading;}
+new_heading-=refrenceheading_;
+if(new_heading > 180) new_heading-=360;
+if(new_heading < -180) new_heading+=360;
+Serial.print(heading );
+Serial.print("     hx ");
+Serial.print(hx);
+Serial.print(" hy");
+Serial.print(hy);
+Serial.print("   required values ");
+Serial.print(new_heading);
+Serial.println("   ");  
+
 }
 
 void printOrientation(float x, float y, float z)
@@ -444,4 +449,60 @@ void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, fl
   q[2] = q3 * norm;
   q[3] = q4 * norm;
 
+}
+float refrenceheading(float hx,float hy)
+{
+  float new_heading ;
+   if (hy > 0)
+    {
+      heading = 90 - (atan(hx / hy) * (180 / PI));
+    }
+    else if (hy < 0)
+    {
+      heading = - (atan(hx / hy) * (180 / PI));
+    }
+    else // hy = 0
+    {
+      if (hx < 0) heading = 180;
+      else heading = 0;
+    }
+//  heading = atan(hx / hy) * (180 / PI);
+//  if (hy > 0 && hx > 0)
+//  {
+//    float new_heading = map(heading , 90, 0, 0, 90);
+//    Serial.print("Heading: ");
+//    Serial.println(new_heading , 2);
+//  }
+//     else if (hy > 0 && hx < 0 )
+//    {
+//       float new_heading = map(heading , -90, 0, 90, 180);
+//       Serial.print("Heading: ");
+//       Serial.println(new_heading , 2);
+//    }
+//   else if  (hx < 0 && hy < 0)
+//    {
+//      float new_heading = map(heading , 90, 0, -90, -180);
+//      Serial.print("Heading: ");
+//      Serial.println(new_heading , 2);
+//    }
+//////    if (hx>0 && hy<0)
+//    else
+////    if(hx>0 && hy <0) 
+//    {
+//   float new_heading = map(heading , 0, -90, 0, -90);
+//      Serial.print("Heading: ");
+//      Serial.println(new_heading , 2);
+//    }
+if (heading>0  && heading <90)
+
+{ if (hy<0)
+  { new_heading= heading; }
+  else 
+  {new_heading= map (heading,0,90,90,180);}
+}
+else if (heading>90)
+{ new_heading=map (heading,90,180,-180,-90);}
+else 
+{new_heading =heading;}
+return new_heading;
 }
