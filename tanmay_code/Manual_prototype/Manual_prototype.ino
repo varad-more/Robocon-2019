@@ -36,6 +36,7 @@ float heading = 0;
 typedef struct vector {
   double Direction;
   int Magnitude;
+
 };
 
 typedef struct motor {
@@ -122,12 +123,13 @@ void loop() {
             anti_clock_wise(60);
             Serial.println("Anticlock");
           }
-          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i)  ) {
+          else if /*(!Xbox.getAnalog(L1, i) && !Xbox.getButtonPress(R1, i)  )*/
+          
+          (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) && Xbox.getAnalogHat(LeftHatX, i)>12000 && Xbox.getAnalogHat(LeftHatY, i)>12000 && Xbox.getButtonPress(R2, i)==0 )
+          {
             //GET VECTOR DIRECTION
-            if (Xbox.getButtonPress(R2,i)==0 && Xbox.getAnalogHat(LeftHatX, i)<12000 && Xbox.getAnalogHat(LeftHatY, i)<12000 )
-            {soft_brake(); }
-            else 
-            {
+             
+         
             Vector.Direction = vector_direction(i);
             //GET VECTOR MAGNITUDE
             Vector.Magnitude = vector_magnitude(i);          
@@ -151,7 +153,7 @@ void loop() {
 //        pid (float error)
       }
     }
-  }
+  
   while (Xbox.Xbox360Connected[xboxNumber]);
   soft_brake();
 }
