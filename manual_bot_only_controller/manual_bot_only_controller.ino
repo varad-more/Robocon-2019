@@ -1,42 +1,18 @@
 #include <XBOXRECV.h>
-#include <math.h>
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
 #endif
-#include <SPI.h> // Included for SFE_LSM9DS0 library
-#include <Wire.h>
-#include <SFE_LSM9DS0.h>
-#define maxSpeed 255
+#include <SPI.h>
+
 
 int xboxNumber = 0;
-
+#define  maxSpeed 255
 USB Usb;
 XBOXRECV Xbox(&Usb);
-
-#define LSM9DS0_XM  0x1E // Would be 0x1E if SDO_XM is LOW
-#define LSM9DS0_G   0x6A // Would be 0x6A if SDO_G is LOW
-
-LSM9DS0 dof(MODE_I2C, LSM9DS0_G, LSM9DS0_XM);
-
-#define PRINT_CALCULATED
-#define PRINT_SPEED 500 // 500 ms between prints
-//#define Kp 2.5
-//#define Ki 2.5
-#define MaxSpeed 150
-#define baseSpeed 100
-// pins need to be  redefined
-double Heading(float , float);
-int error = 0;
-int sensorVal = 0;
-int lastError = 0;
-float heading = 0;
-//  void pid (float); //yet to decide whether to write it or not
-/**/
 
 typedef struct vector {
   double Direction;
   int Magnitude;
-
 };
 
 typedef struct motor {
@@ -44,6 +20,7 @@ typedef struct motor {
   int dir_l;
   int pwm;
 };
+
 void clock_wise(int);
 void anti_clock_wise(int);
 
@@ -73,7 +50,7 @@ void setup() {
   MB.dir_l = 22;
   MC.dir_r = 28;
   MC.dir_l = 26;
-  
+
   pinMode(MA.dir_r, OUTPUT);
   pinMode(MA.dir_l, OUTPUT);
   pinMode(MB.dir_r, OUTPUT);
@@ -84,11 +61,6 @@ void setup() {
   pinMode(MB.pwm, OUTPUT);
   pinMode(MC.pwm, OUTPUT);
   Serial.begin(9600);
-  uint16_t status = dof.begin();
-  Serial.print("LSM9DS0 WHO_AM_I's returned: 0x");
-  Serial.println(status, HEX);
-  Serial.println("Should be 0x49D4");
-  Serial.println();
 
   hard_brake(255);
 
@@ -97,9 +69,7 @@ void setup() {
     while (1); //halt
   }
   Serial.print(F("\r\nXbox Wireless Receiver Library Started"));
-
 }
-
 
 void loop() {
   do {
@@ -108,56 +78,41 @@ void loop() {
       for (uint8_t i = 0; i < 4; i++) {
         if (Xbox.Xbox360Connected[i]) {
           xboxNumber = i;
-          //CLOCKWISE
+
           if (Xbox.getButtonPress(B, i)) {
             hard_brake(255);
+            Serial.println("hard_brake");
           }
+
           else if (Xbox.getButtonPress(R1, i)) {
             clock_wise(60);
-            Serial.println("Clock");
+            Serial.println("Clock"); // clockwise
           }
-          //ANTICLOCKWISE
           else if (Xbox.getButtonPress(L1, i)) {
             anti_clock_wise(60);
-            Serial.println("Anticlock");
+            Serial.println("Anticlock"); // anti-clockwise
           }
-          else if /*(!Xbox.getAnalog(L1, i) && !Xbox.getButtonPress(R1, i)  )*/
-          
-          (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) &&( (abs(Xbox.getAnalogHat(LeftHatX, i))>12000) || abs(Xbox.getAnalogHat(LeftHatY, i))>12000) && Xbox.getButtonPress(R2, i)>0 )
+          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) && ( (abs(Xbox.getAnalogHat(LeftHatX, i)) > 0) || abs(Xbox.getAnalogHat(LeftHatY, i)) > 0) && Xbox.getButtonPress(R2, i) > 0 )
           {
-            //GET VECTOR DIRECTION        
-            Vector.Direction = vector_direction(i);
-            //GET VECTOR MAGNITUDE
-            Vector.Magnitude = vector_magnitude(i);          
-            heading = Heading(dof.mx, dof.my);
-       
-              
-        int *arr, *motor_speed;
-        char *dir ;
-        int *theta;
-        //arr = debug_serial_input();
 
-        motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
-        dir = calc_motor_direction(Vector.Direction);
-        set_motor_values(motor_speed,dir);
-        debug_serial_output(motor_speed,dir,Vector.Direction );
-            }
-            else 
-            {soft_brake();
+            Vector.Direction = vector_direction(i);  //GET VECTOR DIRECTION
+            Vector.Magnitude = vector_magnitude(i); //GET VECTOR MAGNITUDE
+            int *arr, *motor_speed;
+            char *dir ;
+            int *theta;
+            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
+            dir = calc_motor_direction(Vector.Direction);
+            set_motor_values(motor_speed, dir);
+            debug_serial_output(motor_speed, dir, Vector.Direction );
+          }
+          else
+          { soft_brake();
             Serial.println("soft_brake");
-            }
+          }
         }
-
       }
-       
-   
-        //debug_serial_output( motor_speed,dir);
-        //delay(2000);
-//        pid (float error)
-      }
-      }
-  
-  while (Xbox.Xbox360Connected[xboxNumber]);
+    }
+  }   while (Xbox.Xbox360Connected[xboxNumber]);
   soft_brake();
 }
 
@@ -167,6 +122,69 @@ int vector_magnitude(uint8_t i) {
   return magnitude;
 }
 
+double vector_direction(uint8_t i)
+{
+  double Rx = 0, Ry = 0;
+  double angle = 0, dybydx = 0;
+//  double threshold = 12000;
+  Rx = Xbox.getAnalogHat(LeftHatX, i);
+  Ry = Xbox.getAnalogHat(LeftHatY, i);
+                                                  //  if ((Rx > -threshold && Rx < threshold) && (Ry > -threshold && Ry < threshold))
+                                                  //  {
+                                                  //    soft_brake();
+                                                  //    return 500;
+//  }
+//  else
+  {
+    dybydx = (Ry / Rx);
+    angle = atan(dybydx);
+    if (Rx >= 0 && Ry >= 0)
+    {
+      angle = angle  * (180 / PI);
+      angle = map(angle, 0, 90, 90, 0);
+    }
+    else if (Rx < 0 && Ry >= 0)   
+    {
+      angle = angle  * (180 / PI);
+      angle = map(angle, -90, 0, 0, -90);// 90 180
+    }
+    else if (Rx < 0 && Ry < 0)
+    {
+      angle = angle  * (180 / PI);
+      angle = map(angle, 0, 90, -90, -180);//180 270
+    }
+    else if (Rx >= 0 && Ry < 0)
+    {
+      angle = angle  * (180 / PI);
+      angle = map(angle, -90, 0, 180, 90);//270 360
+    }
+    return angle;
+  }
+}
+
+void clock_wise(int pwm) {
+  digitalWrite(MA.dir_r, HIGH);
+  digitalWrite(MA.dir_l, LOW);
+  digitalWrite(MB.dir_r, LOW);
+  digitalWrite(MB.dir_l, HIGH);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
+  analogWrite(MA.pwm, pwm);
+  analogWrite(MB.pwm, pwm);
+  analogWrite(MC.pwm, pwm);
+}
+
+void anti_clock_wise(int pwm) {
+  digitalWrite(MA.dir_r, LOW);
+  digitalWrite(MA.dir_l, HIGH);
+  digitalWrite(MB.dir_r, HIGH);
+  digitalWrite(MB.dir_l, LOW);
+  digitalWrite(MC.dir_r, LOW);
+  digitalWrite(MC.dir_l, HIGH);
+  analogWrite(MA.pwm, pwm);
+  analogWrite(MB.pwm, pwm);
+  analogWrite(MC.pwm, pwm);
+}
 
 void hard_brake(int intensity) {
   digitalWrite(MA.dir_r, HIGH);
@@ -192,7 +210,6 @@ void soft_brake() {
   analogWrite(MC.pwm, 35);
 }
 
-
 int* calc_motor_speeds(int v, int theta)
 {
   static int arr[3];
@@ -200,13 +217,18 @@ int* calc_motor_speeds(int v, int theta)
   arr[0] = v * (cos(theta) * 0.866 + sin(theta) * 0.5);
   arr[1] = v * (cos(theta) * 0.866 - sin(theta) * 0.5);
   arr[2] = v * sin(theta);
-  if (arr[0]<30 && arr[0]>0)
-  {arr[0]=30;}
-  if(arr[1]<30  && arr[1]>0)
-  {arr[1]=30;}
-  if (arr[2]<30 && arr[2]>0)
-   {arr[2]=30;}
-    
+  if (arr[0] < 30 && arr[0] > 0)
+  {
+    arr[0] = 30;
+  }
+  if (arr[1] < 30  && arr[1] > 0)
+  {
+    arr[1] = 30;
+  }
+  if (arr[2] < 30 && arr[2] > 0)
+  {
+    arr[2] = 30;
+  }
   return arr;
 }
 
@@ -291,115 +313,6 @@ int* debug_serial_input()
   debug_var[1] = atoi(theta);
   return debug_var;
 }
-
-double vector_direction(uint8_t i)
-{
-  double Rx = 0, Ry = 0;
-  double angle = 0, dybydx = 0;
-  double threshold = 12000;
-  Rx = Xbox.getAnalogHat(LeftHatX, i);
-  Ry = Xbox.getAnalogHat(LeftHatY, i);
-//  if (Rx > -threshold && Rx < threshold && Ry > -threshold && Ry < threshold)
-//  {
-//    soft_brake();
-//    //    Serial.print("\tStop\t");
-//    return 500;     //distinct stop value
-//  }
-//  else
-  {
-    dybydx = (Ry / Rx);
-    angle = atan(dybydx);
-    if (Rx >0 && Ry >0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, 0, 90, 90, 0);
-    }
-    else if (Rx <=0 && Ry > 0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, -90, 0, 0, -90);// 90 180
-    }
-    else if (Rx <=0 && Ry <=0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, 0, 90, -90, -180);//180 270
-    }
-    else if (Rx >0 && Ry <=0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, -90, 0, 180, 90);//270 360
-    }
-    
-    return angle;
-  }
-}
-double Heading(float hx, float hy)
-{
-  float heading;
-
-  if (hy > 0)
-  {
-    heading = 90 - (atan(hx / hy) * (180 / PI));
-  }
-  else if (hy < 0)
-  {
-    heading = - (atan(hx / hy) * (180 / PI));
-  }
-  else // hy = 0
-  {
-    if (hx < 0) heading = 180;
-    else heading = 0;
-  }
-  //  Serial.print("hx\t");
-  //  Serial.print(hx);
-  //  Serial.print("\thy\t");
-  //  Serial.print(hy);
-  if (hx > 0 && hy < 0)
-  {
-    heading = map(heading, 90, 0, 0, 90);
-  }
-  else if (hx < 0 && hy < 0)
-  {
-    heading = map(heading, 0, -90, 0, -90);
-  }
-  else if (hx < 0 && hy > 0)
-  {
-    heading = map(heading, 180, 90, -90, -360);
-  }
-  else if (hx > 0 && hy > 0)
-  {
-    heading = map(heading, 90, 0, 90 , 180);
-  }
-//  Serial.print("\tHeading: ");
-//  Serial.println(heading);
- return heading ;
-}
-
-void clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, HIGH);
-  digitalWrite(MA.dir_l, LOW);
-  digitalWrite(MB.dir_r, LOW);
-  digitalWrite(MB.dir_l, HIGH);
-  digitalWrite(MC.dir_r, HIGH);
-  digitalWrite(MC.dir_l, LOW);
-  analogWrite(MA.pwm, pwm);
-  analogWrite(MB.pwm, pwm);
-  analogWrite(MC.pwm, pwm);
-}
-
-void anti_clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, LOW);
-  digitalWrite(MA.dir_l, HIGH);
-  digitalWrite(MB.dir_r, HIGH);
-  digitalWrite(MB.dir_l, LOW);
-  digitalWrite(MC.dir_r, LOW);
-  digitalWrite(MC.dir_l, HIGH);
-  analogWrite(MA.pwm, pwm);
-  analogWrite(MB.pwm, pwm);
-  analogWrite(MC.pwm, pwm);
-}
-
-
 
 void debug_serial_output(int *vel, char *dir , double  theta )
 {

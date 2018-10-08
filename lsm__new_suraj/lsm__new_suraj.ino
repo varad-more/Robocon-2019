@@ -242,6 +242,7 @@ else if (heading>90)
 { new_heading=map (heading,90,180,-180,-90);}
 else 
 {new_heading =heading;}
+
 new_heading-=refrenceheading_;
 if(new_heading > 180) new_heading-=360;
 if(new_heading < -180) new_heading+=360;
@@ -497,6 +498,7 @@ if (heading>0  && heading <90)
 
 { if (hy<0)
   { new_heading= heading; }
+  
   else 
   {new_heading= map (heading,0,90,90,180);}
 }
