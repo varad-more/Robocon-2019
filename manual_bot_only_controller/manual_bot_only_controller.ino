@@ -44,11 +44,11 @@ void setup() {
   MA.pwm = 4;
   MB.pwm = 2;
   MC.pwm = 3;
-  MA.dir_r = 32;
-  MA.dir_l = 30;
+  MA.dir_r = 30;
+  MA.dir_l = 32;
   MB.dir_r = 24;
   MB.dir_l = 22;
-  MC.dir_r = 28;
+  MC.dir_r = 28;  // forward apex -> C
   MC.dir_l = 26;
 
   pinMode(MA.dir_r, OUTPUT);
@@ -77,11 +77,20 @@ void loop() {
     if (Xbox.XboxReceiverConnected) {
       for (uint8_t i = 0; i < 4; i++) {
         if (Xbox.Xbox360Connected[i]) {
-          xboxNumber = i;
 
+          xboxNumber = i;
+          Vector.Direction = 0;  //GET VECTOR DIRECTION
+          Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
+
+
+          Xbox.setRumbleOn(0, 0, i);
           if (Xbox.getButtonPress(B, i)) {
             hard_brake(255);
             Serial.println("hard_brake");
+          }
+          else if (Xbox.getButtonPress(A, i)) {
+            soft_brake();
+            Serial.println("soft_brake");
           }
 
           else if (Xbox.getButtonPress(R1, i)) {
@@ -92,9 +101,11 @@ void loop() {
             anti_clock_wise(60);
             Serial.println("Anticlock"); // anti-clockwise
           }
-          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) && ( (abs(Xbox.getAnalogHat(LeftHatX, i)) > 0) || abs(Xbox.getAnalogHat(LeftHatY, i)) > 0) && Xbox.getButtonPress(R2, i) > 0 )
+          else if (Xbox.getAnalogHat(LeftHatX, i) > 12000 || Xbox.getAnalogHat(LeftHatY, i) > 12000 || Xbox.getAnalogHat(LeftHatX, i) < -12000 || Xbox.getAnalogHat(LeftHatY, i) < -12000)
           {
-
+            Serial.print(Xbox.getButtonPress(R2, i));
+            Serial.print("\t");
+            //            Xbox.setRumbleOn(Xbox.getButtonPress(L2, i), Xbox.getButtonPress(R2, i), i);
             Vector.Direction = vector_direction(i);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude(i); //GET VECTOR MAGNITUDE
             int *arr, *motor_speed;
@@ -104,9 +115,14 @@ void loop() {
             dir = calc_motor_direction(Vector.Direction);
             set_motor_values(motor_speed, dir);
             debug_serial_output(motor_speed, dir, Vector.Direction );
+            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
+            motor_speed[0] = 0;
+            motor_speed[1] = 0;
+            motor_speed[2] = 0;
           }
           else
-          { soft_brake();
+          {
+            soft_brake();
             Serial.println("soft_brake");
           }
         }
@@ -126,15 +142,15 @@ double vector_direction(uint8_t i)
 {
   double Rx = 0, Ry = 0;
   double angle = 0, dybydx = 0;
-//  double threshold = 12000;
+  //  double threshold = 12000;
   Rx = Xbox.getAnalogHat(LeftHatX, i);
   Ry = Xbox.getAnalogHat(LeftHatY, i);
-                                                  //  if ((Rx > -threshold && Rx < threshold) && (Ry > -threshold && Ry < threshold))
-                                                  //  {
-                                                  //    soft_brake();
-                                                  //    return 500;
-//  }
-//  else
+  //  if ((Rx > -threshold && Rx < threshold) && (Ry > -threshold && Ry < threshold))
+  //  {
+  //    soft_brake();
+  //    return 500;
+  //  }
+  //  else
   {
     dybydx = (Ry / Rx);
     angle = atan(dybydx);
@@ -143,7 +159,7 @@ double vector_direction(uint8_t i)
       angle = angle  * (180 / PI);
       angle = map(angle, 0, 90, 90, 0);
     }
-    else if (Rx < 0 && Ry >= 0)   
+    else if (Rx < 0 && Ry >= 0)
     {
       angle = angle  * (180 / PI);
       angle = map(angle, -90, 0, 0, -90);// 90 180
@@ -163,24 +179,24 @@ double vector_direction(uint8_t i)
 }
 
 void clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, HIGH);
-  digitalWrite(MA.dir_l, LOW);
+  digitalWrite(MA.dir_r, LOW);
+  digitalWrite(MA.dir_l, HIGH);
   digitalWrite(MB.dir_r, LOW);
   digitalWrite(MB.dir_l, HIGH);
-  digitalWrite(MC.dir_r, HIGH);
-  digitalWrite(MC.dir_l, LOW);
+  digitalWrite(MC.dir_r, LOW);
+  digitalWrite(MC.dir_l, HIGH);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
 }
 
 void anti_clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, LOW);
-  digitalWrite(MA.dir_l, HIGH);
+  digitalWrite(MA.dir_r, HIGH);
+  digitalWrite(MA.dir_l, LOW);
   digitalWrite(MB.dir_r, HIGH);
   digitalWrite(MB.dir_l, LOW);
-  digitalWrite(MC.dir_r, LOW);
-  digitalWrite(MC.dir_l, HIGH);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
@@ -210,13 +226,18 @@ void soft_brake() {
   analogWrite(MC.pwm, 35);
 }
 
-int* calc_motor_speeds(int v, int theta)
+int* calc_motor_speeds(int v, double theta)
 {
   static int arr[3];
-  theta = (float(theta) / 180) * PI;
-  arr[0] = v * (cos(theta) * 0.866 + sin(theta) * 0.5);
-  arr[1] = v * (cos(theta) * 0.866 - sin(theta) * 0.5);
-  arr[2] = v * sin(theta);
+  theta = (double(theta) / 180) * PI;
+  arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5)));
+  arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5)));
+  arr[2] = abs(v * sin(theta));
+
+  if ((theta < 180 && theta > 120) ||  (theta > -180 && theta < -120))
+  {
+    arr[2] = 0 ;
+  }
   if (arr[0] < 30 && arr[0] > 0)
   {
     arr[0] = 30;
@@ -225,47 +246,48 @@ int* calc_motor_speeds(int v, int theta)
   {
     arr[1] = 30;
   }
-  if (arr[2] < 30 && arr[2] > 0)
-  {
-    arr[2] = 30;
-  }
+  //  if (arr[2] < 30 && arr[2] > 0)
+  //  {
+  //    arr[2] = 30;
+  //  }
   return arr;
 }
 
-char* calc_motor_direction(int theta)
+char* calc_motor_direction(double thet)
 {
+  int theta = int(thet);
   static char str[4];
-  if (theta >= -180 && theta < -120)
+  if (theta > -180 && theta < -120)   // forward
   {
     str[0] = 'l';
     str[1] = 'r';
     str[2] = 'r';
   }
-  else if (theta >= -120 && theta < -60)
+  else if (theta < 120 && theta > 60)
   {
     str[0] = 'l';
     str[1] = 'l';
     str[2] = 'r';
   }
-  else if (theta >= -60 && theta < 0)
+  else if (theta > -60 && theta < 0)
   {
     str[0] = 'r';
     str[1] = 'l';
     str[2] = 'r';
   }
-  else if (theta >= 0 && theta < 60)
+  else if (theta > 0 && theta < 60)
   {
     str[0] = 'r';
     str[1] = 'l';
     str[2] = 'l';
   }
-  else if (theta >= 60 && theta < 120)
+  else if (theta < -60 && theta > -120)
   {
     str[0] = 'r';
     str[1] = 'r';
     str[2] = 'l';
   }
-  else if (theta >= 120 && theta <= 180)
+  else if (theta > 120 && theta < 180)
   {
     str[0] = 'l';
     str[1] = 'r';

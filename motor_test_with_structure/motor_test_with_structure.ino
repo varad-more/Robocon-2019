@@ -8,7 +8,7 @@ void anti_clock_wise(int);
 
 
 struct motor MA, MB, MC;
-
+void soft_brake ();
 void setup() {
   MA.pwm = 4;
   MB.pwm = 2;
@@ -29,36 +29,59 @@ void setup() {
   pinMode(MA.pwm, OUTPUT);
   pinMode(MB.pwm, OUTPUT);
   pinMode(MC.pwm, OUTPUT);
+  
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-    clock_wise(40);
-    delay(2000);
-    anti_clock_wise(40);
+//    clock_wise(40);
+//    delay(2000);
+//    anti_clock_wise(40);
+//    delay (2000);
+    digitalWrite(MA.dir_r, HIGH);
+    digitalWrite(MA.dir_l, LOW);
+    digitalWrite(MB.dir_r, HIGH);
+    digitalWrite(MB.dir_l, LOW);
+    digitalWrite(MC.dir_r, HIGH);
+    digitalWrite(MC.dir_l, LOW);
+    analogWrite(MA.pwm, 60);
+    analogWrite(MB.pwm, 60);
+    analogWrite(MC.pwm, 60);
+    soft_brake();
     delay (2000);
 }
 
-void clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, HIGH);
+void soft_brake() {
+  digitalWrite(MA.dir_r, LOW);
   digitalWrite(MA.dir_l, LOW);
   digitalWrite(MB.dir_r, LOW);
-  digitalWrite(MB.dir_l, HIGH);
-  digitalWrite(MC.dir_r, HIGH);
-  digitalWrite(MC.dir_l, LOW);
-  analogWrite(MA.pwm, pwm);
-  analogWrite(MB.pwm, pwm);
-  analogWrite(MC.pwm, pwm);
-}
-
-void anti_clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, LOW);
-  digitalWrite(MA.dir_l, HIGH);
-  digitalWrite(MB.dir_r, HIGH);
   digitalWrite(MB.dir_l, LOW);
   digitalWrite(MC.dir_r, LOW);
-  digitalWrite(MC.dir_l, HIGH);
-  analogWrite(MA.pwm, pwm);
-  analogWrite(MB.pwm, pwm);
-  analogWrite(MC.pwm, pwm);
+  digitalWrite(MC.dir_l, LOW);
+  analogWrite(MA.pwm, 35);
+  analogWrite(MB.pwm, 35);
+  analogWrite(MC.pwm, 35);
 }
+//void clock_wise(int pwm) {
+//  digitalWrite(MA.dir_r, HIGH);
+//  digitalWrite(MA.dir_l, LOW);
+//  digitalWrite(MB.dir_r, LOW);
+//  digitalWrite(MB.dir_l, HIGH);
+//  digitalWrite(MC.dir_r, HIGH);
+//  digitalWrite(MC.dir_l, LOW);
+//  analogWrite(MA.pwm, pwm);
+//  analogWrite(MB.pwm, pwm);
+//  analogWrite(MC.pwm, pwm);
+//}
+//
+//void anti_clock_wise(int pwm) {
+//  digitalWrite(MA.dir_r, LOW);
+//  digitalWrite(MA.dir_l, HIGH);
+//  digitalWrite(MB.dir_r, HIGH);
+//  digitalWrite(MB.dir_l, LOW);
+//  digitalWrite(MC.dir_r, LOW);
+//  digitalWrite(MC.dir_l, HIGH);
+//  analogWrite(MA.pwm, pwm);
+//  analogWrite(MB.pwm, pwm);
+//  analogWrite(MC.pwm, pwm);
+//}
