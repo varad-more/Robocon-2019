@@ -8,7 +8,7 @@
 LSM9DS0 dof(MODE_I2C, LSM9DS0_G, LSM9DS0_XM);
 
 #define GyroMeasError PI * (40.0f / 180.0f)       // gyroscope measurement error in rads/s (shown as 3 deg/s)
-#define GyroMeasDrift PI * (0.0f / 180.0f)      // gyroscope measurement drift in rad/s/s (shown as 0.0 deg/s/s)
+#define GyroMeasDrift PI * (0.0f / 180.0f)      // gyroscope measur ement drift in rad/s/s (shown as 0.0 deg/s/s)
 #define beta sqrt(3.0f / 4.0f) * GyroMeasError   // compute beta
 #define zeta sqrt(3.0f / 4.0f) * GyroMeasDrift   // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
 #define Kp 2.0f * 5.0f // these are the free parameters in the Mahony filter and fusion scheme, Kp for proportional feedback, Ki for integral
@@ -99,19 +99,32 @@ void printHeading(float hx, float hy,float refrenceheading_)
       if (hx < 0) heading = 180;
       else heading = 0;
     }
-    
-if (heading>0  && heading <90)
-
-{ if (hy<0)
-  { new_heading= heading; }
-  else 
-  {new_heading= map (heading,0,90,90,180);}
-}
-else if (heading>90)
-{ new_heading=map (heading,90,180,-180,-90);}
-else 
-{new_heading =heading;}
-
+    if (hy > 0 && hx > 0)
+  {
+    float new_heading = map(heading , 90, 0, 0, 90);
+    Serial.print("Heading: ");
+    Serial.println(new_heading , 2);
+  }
+     else if (hy > 0 && hx < 0 )
+    {
+       float new_heading = map(heading , -90, 0, 90, 180);
+       Serial.print("Heading: ");
+       Serial.println(new_heading , 2);
+    }
+   else if  (hx < 0 && hy < 0)
+    {
+      float new_heading = map(heading , 90, 0, -90, -180);
+      Serial.print("Heading: ");
+      Serial.println(new_heading , 2);
+    }
+////    if (hx>0 && hy<0)
+    else
+//    if(hx>0 && hy <0) 
+    {
+   float new_heading = map(heading , 0, -90, 0, -90);
+      Serial.print("Heading: ");
+      Serial.println(new_heading , 2);
+    }
 new_heading-=refrenceheading_;
 if(new_heading > 180) new_heading-=360;
 if(new_heading < -180) new_heading+=360;
@@ -337,17 +350,31 @@ float refrenceheading(float hx,float hy)
       else heading = 0;
     }
     
-if (heading>0  && heading <90)
-
-{ if (hy<0)
-  { new_heading= heading; }
-  
-  else 
-  {new_heading= map (heading,0,90,90,180);}
-}
-else if (heading>90)
-{ new_heading=map (heading,90,180,-180,-90);}
-else 
-{new_heading =heading;}
+if (hy > 0 && hx > 0)
+  {
+    float new_heading = map(heading , 90, 0, 0, 90);
+    Serial.print("Heading: ");
+    Serial.println(new_heading , 2);
+  }
+     else if (hy > 0 && hx < 0 )
+    {
+       float new_heading = map(heading , -90, 0, 90, 180);
+       Serial.print("Heading: ");
+       Serial.println(new_heading , 2);
+    }
+   else if  (hx < 0 && hy < 0)
+    {
+      float new_heading = map(heading , 90, 0, -90, -180);
+      Serial.print("Heading: ");
+      Serial.println(new_heading , 2);
+    }
+////    if (hx>0 && hy<0)
+    else
+//    if(hx>0 && hy <0) 
+    {
+   float new_heading = map(heading , 0, -90, 0, -90);
+      Serial.print("Heading: ");
+      Serial.println(new_heading , 2);
+    }
 return new_heading;
 }
