@@ -1,20 +1,19 @@
 #include <SPI.h> // Included for SFE_LSM9DS0 library
 #include <Wire.h>
 #include <SFE_LSM9DS0.h>
-
 #define LSM9DS0_XM  0x1E // Would be 0x1E if SDO_XM is LOW
 #define LSM9DS0_G   0x6A // Would be 0x6A if SDO_G is LOW
-
 LSM9DS0 dof(MODE_I2C, LSM9DS0_G, LSM9DS0_XM);
 
 #define GyroMeasError PI * (40.0f / 180.0f)       // gyroscope measurement error in rads/s (shown as 3 deg/s)
-#define GyroMeasDrift PI * (0.0f / 180.0f)      // gyroscope measur ement drift in rad/s/s (shown as 0.0 deg/s/s)
+#define GyroMeasDrift PI * (0.0f / 180.0f)      // gyroscope measurement drift in rad/s/s (shown as 0.0 deg/s/s)
 #define beta sqrt(3.0f / 4.0f) * GyroMeasError   // compute beta
 #define zeta sqrt(3.0f / 4.0f) * GyroMeasDrift   // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
 #define Kp 2.0f * 5.0f // these are the free parameters in the Mahony filter and fusion scheme, Kp for proportional feedback, Ki for integral
 #define Ki 0.0f
 
-
+uint32_t count = 0;  // used to control display output rate
+uint32_t delt_t = 0; // used to control display output rate
 float pitch, yaw, roll, heading;
 float deltat = 0.0f;        // integration interval for both filter schemes
 uint32_t lastUpdate = 0;    // used to calculate integration interval
@@ -24,17 +23,11 @@ float abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
-int i=1;
-float refrenceheading_;
-
 
 void setup()
 {
   Serial.begin(115200); // Start serial at 38400 bps
-
-
   uint32_t status = dof.begin();
-
   Serial.print("LSM9DS0 WHO_AM_I's returned: 0x");
   Serial.println(status, HEX);
   Serial.println("Should be 0x49D4");
@@ -43,12 +36,12 @@ void setup()
   dof.setAccelScale(dof.A_SCALE_2G);
   dof.setGyroScale(dof.G_SCALE_245DPS);
   dof.setMagScale(dof.M_SCALE_2GS);
+
   dof.setAccelODR(dof.A_ODR_200); // Set accelerometer update rate at 100 Hz
   dof.setAccelABW(dof.A_ABW_50); // Choose lowest filter setting for low noise
   dof.setGyroODR(dof.G_ODR_190_BW_125);  // Set gyro update rate to 190 Hz with the smallest bandwidth for low noise
   dof.setMagODR(dof.M_ODR_125); // Set magnetometer to update every 80 ms
   dof.calLSM9DS0(gbias, abias);
-
 }
 
 void loop()
@@ -67,89 +60,47 @@ void loop()
   mx = dof.calcMag(dof.mx);     // Convert to Gauss and correct for calibration
   my = dof.calcMag(dof.my);
   mz = dof.calcMag(dof.mz);
-
-  Now = micros();
-  deltat = ((Now - lastUpdate) / 1000000.0f); // set integration time by time elapsed since last filter update
-  lastUpdate = Now;
   MadgwickQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, mx, my, mz);
- if(i==1)   
- {delay(1000);
-    refrenceheading_=refrenceheading(mx,my);
-    Serial.println("refrance taken as");
-     Serial.println(refrenceheading_);
-    i++;
- }
+  //  MahonyQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, mx, my, mz);
 
-  printHeading(mx, my,refrenceheading_);
+  printHeading(mx, my);
+
+  yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+  yaw   *= 180.0f / PI;
+  yaw   -= 13.8; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+
 }
 
-void printHeading(float hx, float hy,float refrenceheading_)
+void printHeading(float hx, float hy)
 {
-  float new_heading ;
-   if (hy > 0)
-    {
-      heading = 90 - (atan(hx / hy) * (180 / PI));
-    }
-    else if (hy < 0)
-    {
-      heading = - (atan(hx / hy) * (180 / PI));
-    }
-    else // hy = 0
-    {
-      if (hx < 0) heading = 180;
-      else heading = 0;
-    }
-    if (hy > 0 && hx > 0)
+  if (hy > 0)
   {
-    float new_heading = map(heading , 90, 0, 0, 90);
-//    Serial.print("Heading: ");
-//    Serial.println(new_heading , 2);
+    heading = 90 - (atan(hx / hy) * (180 / PI));
   }
-     else if (hy > 0 && hx < 0 )
-    {
-       float new_heading = map(heading , -90, 0, 90, 180);
-//       Serial.print("Heading: ");
-//       Serial.println(new_heading , 2);
-    }
-   else if  (hx < 0 && hy < 0)
-    {
-      float new_heading = map(heading , 90, 0, -90, -180);
-//      Serial.print("Heading: ");
-//      Serial.println(new_heading , 2);
-    }
-////    if (hx>0 && hy<0)
-    else
-//    if(hx>0 && hy <0) 
-    {
-   float new_heading = map(heading , 0, -90, 0, -90);
-//      Serial.print("Heading: ");
-//      Serial.println(new_heading , 2);
-    }
-    
-new_heading-=refrenceheading_;
-if(new_heading > 180) new_heading-=360;
-if(new_heading < -180) new_heading+=360;
-Serial.print(refrenceheading_ );
-Serial.print("     hx ");
-Serial.print(hx);
-Serial.print(" hy");
-Serial.print(hy);
-Serial.print("   required values ");
-Serial.print(new_heading);
-Serial.println("   ");  
-
+  else if (hy < 0)
+  {
+    heading = - (atan(hx / hy) * (180 / PI));
+  }
+  else // hy = 0
+  {
+    if (hx < 0) heading = 180;
+    else heading = 0;
+  }
+  float new_heading = 0;
+  if (hy > 0 && hx > 0)
+  {
+    new_heading = map(heading , 0, 90, 90, 180);
+  }
+  else if (hy > 0 && hx < 0 )
+  {
+    new_heading = map(heading , 90, 180, -180, -90);
+  }
+  else
+  {
+    new_heading = map(heading , 0, 90, 0, 90);
+  }
+  Serial.println(new_heading, 2);
 }
-
-void printOrientation(float x, float y, float z)
-{
-
-  pitch = atan2(x, sqrt(y * y) + (z * z));
-  roll = atan2(y, sqrt(x * x) + (z * z));
-  pitch *= 180.0 / PI;
-  roll *= 180.0 / PI;
-
-}
-
 void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
 {
   float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
@@ -242,7 +193,6 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
 
 }
 
-
 void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
 {
   float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
@@ -333,49 +283,4 @@ void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, fl
   q[2] = q3 * norm;
   q[3] = q4 * norm;
 
-}
-float refrenceheading(float hx,float hy)
-{
-  float new_heading ;
-   if (hy > 0)
-    {
-      heading = 90 - (atan(hx / hy) * (180 / PI));
-    }
-    else if (hy < 0)
-    {
-      heading = - (atan(hx / hy) * (180 / PI));
-    }
-    else // hy = 0
-    {
-      if (hx < 0) heading = 180;
-      else heading = 0;
-    }
-    
-if (hy > 0 && hx > 0)
-  {
-    float new_heading = map(heading , 90, 0, 0, 90);
-//    Serial.print("Heading: ");
-//    Serial.println(new_heading , 2);
-  }
-     else if (hy > 0 && hx < 0 )
-    {
-       float new_heading = map(heading , -90, 0, 90, 180);
-//       Serial.print("Heading: ");
-//       Serial.println(new_heading , 2);
-    }
-   else if  (hx < 0 && hy < 0)
-    {
-      float new_heading = map(heading , 90, 0, -90, -180);
-//      Serial.print("Heading: ");
-//      Serial.println(new_heading , 2);
-    }
-////    if (hx>0 && hy<0)
-    else
-//    if(hx>0 && hy <0) 
-    {
-   float new_heading = map(heading , 0, -90, 0, -90);
-//      Serial.print("Heading: ");
-//      Serial.println(new_heading , 2);
-    }
-return new_heading;
 }

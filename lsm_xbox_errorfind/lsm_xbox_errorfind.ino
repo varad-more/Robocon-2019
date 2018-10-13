@@ -1,38 +1,38 @@
+#include "manual.cpp"
 #include <XBOXRECV.h>
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
 #endif
 #include <SPI.h>
-
 #include <Wire.h>
 #include <SFE_LSM9DS0.h>
 
 #define LSM9DS0_XM  0x1E // Would be 0x1E if SDO_XM is LOW
 #define LSM9DS0_G   0x6A // Would be 0x6A if SDO_G is LOW
+
 LSM9DS0 dof(MODE_I2C, LSM9DS0_G, LSM9DS0_XM);
 
-#define GyroMeasError PI * (40.0f / 180.0f)
-#define GyroMeasDrift PI * (0.0f / 180.0f)
-#define beta sqrt(3.0f / 4.0f) * GyroMeasError
-#define zeta sqrt(3.0f / 4.0f) * GyroMeasDrift
-#define Kp 2.0f * 5.0f
+#define GyroMeasError PI * (40.0f / 180.0f)       // gyroscope measurement error in rads/s (shown as 3 deg/s)
+#define GyroMeasDrift PI * (0.0f / 180.0f)      // gyroscope measurement drift in rad/s/s (shown as 0.0 deg/s/s)
+#define beta sqrt(3.0f / 4.0f) * GyroMeasError   // compute beta
+#define zeta sqrt(3.0f / 4.0f) * GyroMeasDrift   // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
+#define Kp 2.0f * 5.0f // these are the free parameters in the Mahony filter and fusion scheme, Kp for proportional feedback, Ki for integral
 #define Ki 0.0f
 
-
+uint32_t count = 0;  // used to control display output rate
+uint32_t delt_t = 0; // used to control display output rate
 float pitch, yaw, roll, heading;
-float deltat = 0.0f;
-uint32_t lastUpdate = 0;
-uint32_t Now = 0;
+float deltat = 0.0f;        // integration interval for both filter schemes
+uint32_t lastUpdate = 0;    // used to calculate integration interval
+uint32_t Now = 0;           // used to calculate integration interval
 
 float abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
-float ax, ay, az, gx, gy, gz, mx, my, mz;
-float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-float eInt[3] = {0.0f, 0.0f, 0.0f};
+float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
+float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
+float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 int fheading = 1;
 double refrenceheading_;
 double lsm_heading;
-
-
 
 int xboxNumber = 0;
 #define  maxSpeed 255
@@ -61,12 +61,13 @@ int vector_magnitude(uint8_t);
 void hard_brake(int);
 void soft_brake();
 
-int* calc_motor_speeds(int v, int theta);
-char* calc_motor_direction(int theta);
+int* calc_motor_speeds(int v, double theta);
+char* calc_motor_direction(double thet);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
 int* debug_serial_input();
 void debug_serial_output (int *vel, char *dir,  double theta , double lsm , double error );
+
 //lsm functions prototypes
 double printHeading(float hx, float hy, float refrenceheading_);
 void printOrientation(float x, float y, float z);
@@ -81,8 +82,8 @@ void setup() {
   MC.pwm = 3;
   MA.dir_r = 32;
   MA.dir_l = 30;
-  MB.dir_r = 24;
-  MB.dir_l = 22;
+  MB.dir_r = 22;
+  MB.dir_l = 24;
   MC.dir_r = 28;
   MC.dir_l = 26;
 
@@ -98,21 +99,17 @@ void setup() {
 
   hard_brake(255);
   Serial.begin(115200);
-
   uint32_t status = dof.begin();
-
   Serial.print("LSM9DS0 WHO_AM_I's returned: 0x");
   Serial.println(status, HEX);
   Serial.println("Should be 0x49D4");
-  Serial.println();
-
   dof.setAccelScale(dof.A_SCALE_2G);
   dof.setGyroScale(dof.G_SCALE_245DPS);
   dof.setMagScale(dof.M_SCALE_2GS);
-  dof.setAccelODR(dof.A_ODR_200);
-  dof.setAccelABW(dof.A_ABW_50);
-  dof.setGyroODR(dof.G_ODR_190_BW_125);
-  dof.setMagODR(dof.M_ODR_125);
+  dof.setAccelODR(dof.A_ODR_200); // Set accelerometer update rate at 100 Hz
+  dof.setAccelABW(dof.A_ABW_50); // Choose lowest filter setting for low noise
+  dof.setGyroODR(dof.G_ODR_190_BW_125);  // Set gyro update rate to 190 Hz with the smallest bandwidth for low noise
+  dof.setMagODR(dof.M_ODR_125); // Set magnetometer to update every 80 ms
   dof.calLSM9DS0(gbias, abias);
 
   if (Usb.Init() == -1) {
@@ -131,11 +128,18 @@ void loop() {
         if (Xbox.Xbox360Connected[i]) {
           xboxNumber = i;
 
+          Vector.Direction = vector_direction(i);  //GET VECTOR DIRECTION
+          Vector.Magnitude = vector_magnitude(i); //GET VECTOR MAGNITUDE
+
           if (Xbox.getButtonPress(B, i)) {
             hard_brake(255);
             Serial.println("hard_brake");
           }
 
+          else if (Xbox.getButtonPress(A, i)) {
+            soft_brake();
+            Serial.println("soft_brake");
+          }
           else if (Xbox.getButtonPress(R1, i)) {
             clock_wise(60);
             Serial.println("Clock");
@@ -146,31 +150,37 @@ void loop() {
             Serial.println("Anticlock");
             fheading = 1;
           }
-          else if (!Xbox.getButtonPress(L1, i) && !Xbox.getButtonPress(R1, i) && ( (abs(Xbox.getAnalogHat(LeftHatX, i)) > 0) || abs(Xbox.getAnalogHat(LeftHatY, i)) > 0) && abs(Xbox.getButtonPress(R2, i))>0 )
+          else if (Xbox.getAnalogHat(LeftHatX, i) > 12000 || Xbox.getAnalogHat(LeftHatY, i) > 12000 || Xbox.getAnalogHat(LeftHatX, i) < -12000 || Xbox.getAnalogHat(LeftHatY, i) < -12000)
           {
-
             Vector.Direction = vector_direction(i);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude(i); //GET VECTOR MAGNITUDE
             int *arr, *motor_speed;
             char *dir ;
             int *theta;
             if (fheading == 1)
-            { 
+            {
               refrenceheading_ = refrenceheading(mx, my);
               Serial.println("refrance taken as");
               Serial.println(refrenceheading_);
               fheading++;
             }
+
             lsm_heading = printHeading(mx, my, refrenceheading_);
             motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
+
             dir = calc_motor_direction(Vector.Direction);
             set_motor_values(motor_speed, dir);
-            double error = errorcal( lsm_heading,Vector.Direction);
+            double error = errorcal( lsm_heading, Vector.Direction);
+
             debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, error );
-            
+            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
+            motor_speed[0] = 0;
+            motor_speed[1] = 0;
+            motor_speed[2] = 0;
           }
-          else 
-          { soft_brake();
+          else
+          {
+            soft_brake();
             Serial.println("soft_brake");
           }
         }
@@ -180,7 +190,8 @@ void loop() {
   soft_brake();
 }
 
-int vector_magnitude(uint8_t i) {
+int vector_magnitude(uint8_t i)
+{
   int magnitude = Xbox.getButtonPress(R2, i);
   magnitude = map(magnitude, 0, 255, 0, maxSpeed);
   return magnitude;
@@ -193,12 +204,6 @@ double vector_direction(uint8_t i)
   //  double threshold = 12000;
   Rx = Xbox.getAnalogHat(LeftHatX, i);
   Ry = Xbox.getAnalogHat(LeftHatY, i);
-  //  if ((Rx > -threshold && Rx < threshold) && (Ry > -threshold && Ry < threshold))
-  //  {
-  //    soft_brake();
-  //    return 500;
-  //  }
-  //  else
   {
     dybydx = (Ry / Rx);
     angle = atan(dybydx);
@@ -229,10 +234,10 @@ double vector_direction(uint8_t i)
 void clock_wise(int pwm) {
   digitalWrite(MA.dir_r, HIGH);
   digitalWrite(MA.dir_l, LOW);
-  digitalWrite(MB.dir_r, LOW);
-  digitalWrite(MB.dir_l, HIGH);
-  digitalWrite(MC.dir_r, HIGH);
-  digitalWrite(MC.dir_l, LOW);
+  digitalWrite(MB.dir_r, HIGH);
+  digitalWrite(MB.dir_l, LOW);
+  digitalWrite(MC.dir_r, LOW);
+  digitalWrite(MC.dir_l, HIGH);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
@@ -241,10 +246,10 @@ void clock_wise(int pwm) {
 void anti_clock_wise(int pwm) {
   digitalWrite(MA.dir_r, LOW);
   digitalWrite(MA.dir_l, HIGH);
-  digitalWrite(MB.dir_r, HIGH);
-  digitalWrite(MB.dir_l, LOW);
-  digitalWrite(MC.dir_r, LOW);
-  digitalWrite(MC.dir_l, HIGH);
+  digitalWrite(MB.dir_r, LOW);
+  digitalWrite(MB.dir_l, HIGH);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
@@ -274,62 +279,67 @@ void soft_brake() {
   analogWrite(MC.pwm, 35);
 }
 
-int* calc_motor_speeds(int v, int theta)
+int* calc_motor_speeds(int v, double theta)
 {
   static int arr[3];
-  theta = (float(theta) / 180) * PI;
-  arr[0] = v * (cos(theta) * 0.866 + sin(theta) * 0.5);
-  arr[1] = v * (cos(theta) * 0.866 - sin(theta) * 0.5);
-  arr[2] = v * sin(theta);
-  if (arr[0] < 30 && arr[0] > 0)
+  theta = (double(theta) / 180) * PI;
+  arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5)));
+  arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5)));
+  arr[2] = abs(v * sin(theta));
+  if ((theta < 180 && theta > 120) ||  (theta > -180 && theta < -120))
   {
-    arr[0] = 30;
+    arr[2] = 0 ;
   }
-  if (arr[1] < 30  && arr[1] > 0)
+  if (arr[0] < 30 && arr[0] >= 0)
   {
-    arr[1] = 30;
+    arr[0] = 0;
   }
-  if (arr[2] < 30 && arr[2] > 0)
+  if (arr[1] < 30  && arr[1] >= 0)
   {
-    arr[2] = 30;
+    arr[1] = 0;
+  }
+  if (arr[2] < 40 && arr[2] >= 0)
+  {
+    arr[2] = 0;
   }
   return arr;
 }
 
-char* calc_motor_direction(int theta)
+char* calc_motor_direction(double thet)
 {
+  int theta = int(thet);
   static char str[4];
-  if (theta >= -180 && theta < -120)
+  if (theta > -180 && theta < -120)   // forward
   {
     str[0] = 'l';
     str[1] = 'r';
     str[2] = 'r';
   }
-  else if (theta >= -120 && theta < -60)
-  {
-    str[0] = 'l';
-    str[1] = 'l';
-    str[2] = 'r';
-  }
-  else if (theta >= -60 && theta < 0)
-  {
-    str[0] = 'r';
-    str[1] = 'l';
-    str[2] = 'r';
-  }
-  else if (theta >= 0 && theta < 60)
-  {
-    str[0] = 'r';
-    str[1] = 'l';
-    str[2] = 'l';
-  }
-  else if (theta >= 60 && theta < 120)
+  else if (theta < 120 && theta > 60)
   {
     str[0] = 'r';
     str[1] = 'r';
     str[2] = 'l';
   }
-  else if (theta >= 120 && theta <= 180)
+  else if (theta > -60 && theta < 0)
+  {
+    str[0] = 'r';
+    str[1] = 'l';
+    str[2] = 'r';
+  }
+  else if (theta > 0 && theta < 60)
+  {
+    str[0] = 'r';
+    str[1] = 'l';
+    str[2] = 'l';
+  }
+  else if (theta < -60 && theta > -120)
+  {
+    str[0] = 'l';
+    str[1] = 'l';
+    str[2] = 'r';
+  }
+  else if (theta > 120 && theta < 180)
   {
     str[0] = 'l';
     str[1] = 'r';
@@ -337,6 +347,7 @@ char* calc_motor_direction(int theta)
   }
   return str;
 }
+
 
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir)
 {
@@ -378,12 +389,15 @@ int* debug_serial_input()
   return debug_var;
 }
 
-void debug_serial_output(int *vel, char *dir , double  theta , double lsm,double error )
+void debug_serial_output(int *vel, char *dir , double  theta , double lsm, double error )
 {
+  Serial.print("MA:");
   Serial.print(vel[0]);
   Serial.print(" ");
+  Serial.print("MB:");
   Serial.print(vel[1]);
   Serial.print(" ");
+  Serial.print("MC:");
   Serial.print(vel[2]);
   Serial.print(" ");
   Serial.print(dir[0]);
@@ -392,43 +406,42 @@ void debug_serial_output(int *vel, char *dir , double  theta , double lsm,double
   Serial.print(" ");
   Serial.print(dir[2]);
   Serial.print(" ");
+  Serial.print("Theta:");
   Serial.print(theta);
   Serial.print(" ");
+  Serial.print("Heading:");
   Serial.print(lsm);
   Serial.print(" ");
+  Serial.print("Error:");
   Serial.println(error);
 }
+
 void basiclsm()
 {
-  dof.readGyro();
-  gx = dof.calcGyro(dof.gx) - gbias[0];
+  dof.readGyro();           // Read raw gyro data
+  gx = dof.calcGyro(dof.gx) - gbias[0];   // Convert to degrees per seconds, remove gyro biases
   gy = dof.calcGyro(dof.gy) - gbias[1];
   gz = dof.calcGyro(dof.gz) - gbias[2];
 
-  dof.readAccel();
-  ax = dof.calcAccel(dof.ax) - abias[0];
+  dof.readAccel();         // Read raw accelerometer data
+  ax = dof.calcAccel(dof.ax) - abias[0];   // Convert to g's, remove accelerometer biases
   ay = dof.calcAccel(dof.ay) - abias[1];
   az = dof.calcAccel(dof.az) - abias[2];
 
-  dof.readMag();
-  mx = dof.calcMag(dof.mx);
+  dof.readMag();           // Read raw magnetometer data
+  mx = dof.calcMag(dof.mx);     // Convert to Gauss and correct for calibration
   my = dof.calcMag(dof.my);
   mz = dof.calcMag(dof.mz);
-
-  Now = micros();
-  deltat = ((Now - lastUpdate) / 1000000.0f);
-  lastUpdate = Now;
   MadgwickQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, mx, my, mz);
+  //  MahonyQuaternionUpdate(ax, ay, az, gx * PI / 180.0f, gy * PI / 180.0f, gz * PI / 180.0f, mx, my, mz);
+  yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+  yaw   *= 180.0f / PI;
+  yaw   -= 13.8; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
 }
-
-//all lsm functions declaration
-
-
-
 
 double refrenceheading(float hx, float hy)
 {
-  double new_heading ;
+  double new_heading;
   if (hy > 0)
   {
     heading = 90 - (atan(hx / hy) * (180 / PI));
@@ -442,30 +455,20 @@ double refrenceheading(float hx, float hy)
     if (hx < 0) heading = 180;
     else heading = 0;
   }
-
-  if (heading > 0  && heading < 90)
-
-  { if (hy < 0)
-    {
-      new_heading = heading;
-    }
-
-    else
-    {
-      new_heading = map (heading, 0, 90, 90, 180);
-    }
-  }
-  else if (heading > 90)
+  if (hy > 0 && hx > 0)
   {
-    new_heading = map (heading, 90, 180, -180, -90);
+    new_heading = map(heading , 0, 90, 90, 180);
+  }
+  else if (hy > 0 && hx < 0 )
+  {
+    new_heading = map(heading , 90, 180, -180, -90);
   }
   else
   {
-    new_heading = heading;
+    new_heading = map(heading , 0, 90, 0, 90);
   }
   return new_heading;
 }
-
 
 void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz)
 {
@@ -558,6 +561,7 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
   q[3] = q4 * norm;
 
 }
+
 double printHeading(float hx, float hy, double refrenceheading_)
 {
   double new_heading ;
@@ -574,60 +578,35 @@ double printHeading(float hx, float hy, double refrenceheading_)
     if (hx < 0) heading = 180;
     else heading = 0;
   }
-
-  if (heading > 0  && heading < 90)
-
-  { if (hy < 0)
-    {
-      new_heading = heading;
-    }
-    else
-    {
-      new_heading = map (heading, 0, 90, 90, 180);
-    }
-  }
-  else if (heading > 90)
+  if (hy > 0 && hx > 0)
   {
-    new_heading = map (heading, 90, 180, -180, -90);
+    new_heading = map(heading , 0, 90, 90, 180);
+  }
+  else if (hy > 0 && hx < 0 )
+  {
+    new_heading = map(heading , 90, 180, -180, -90);
   }
   else
   {
-    new_heading = heading;
+    new_heading = map(heading , 0, 90, 0, 90);
   }
 
   new_heading -= refrenceheading_;
   if (new_heading > 180) new_heading -= 360;
   if (new_heading < -180) new_heading += 360;
-//  Serial.print(heading );
-//  Serial.print("     hx ");
-//  Serial.print(hx);
-//  Serial.print(" hy");
-//  Serial.print(hy);
-//  Serial.print("   required values ");
-//  Serial.print(new_heading);
-//  Serial.println("   ");
   return new_heading;
-
 }
-double errorcal(double lsm,double set_point)
+
+double errorcal(double lsm, double set_point)
 {
   double error;
-  if(set_point<-90 && set_point > 90  ) 
-  {set_point+=180; 
+  if (set_point < -90 && set_point > 90  )
+  { set_point += 180;
   }
-  if(lsm < -90 && lsm > 90)
+  if (lsm < -90 && lsm > 90)
   {
-    lsm+=180;
+    lsm += 180;
   }
-  error=set_point - lsm;
-  //+ve move right -ve move left
-  Serial.println(" printing error:");
-  //if(error<-90) error+=180;
-  //else if(error>90) error-=180;
-  Serial.print(error);
-//  delay(1000);
+  error = set_point - lsm;
   return error ;
-  
-  
-  
 }

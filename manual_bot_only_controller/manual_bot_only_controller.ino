@@ -145,12 +145,6 @@ double vector_direction(uint8_t i)
   //  double threshold = 12000;
   Rx = Xbox.getAnalogHat(LeftHatX, i);
   Ry = Xbox.getAnalogHat(LeftHatY, i);
-  //  if ((Rx > -threshold && Rx < threshold) && (Ry > -threshold && Ry < threshold))
-  //  {
-  //    soft_brake();
-  //    return 500;
-  //  }
-  //  else
   {
     dybydx = (Ry / Rx);
     angle = atan(dybydx);
