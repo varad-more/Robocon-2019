@@ -1,4 +1,3 @@
-#include "manual.cpp"
 #include <XBOXRECV.h>
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
@@ -33,6 +32,10 @@ float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for M
 int fheading = 1;
 double refrenceheading_;
 double lsm_heading;
+double prev_error = 0;
+
+double kp=1;
+double ki=1;
 
 int xboxNumber = 0;
 #define  maxSpeed 255
@@ -60,8 +63,8 @@ int vector_magnitude(uint8_t);
 
 void hard_brake(int);
 void soft_brake();
-
-int* calc_motor_speeds(int v, double theta);
+double errorcal(double lsm, double set_point);
+int* calc_motor_speeds(int v, double theta, double error );
 char* calc_motor_direction(double thet);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
@@ -153,13 +156,13 @@ void loop() {
           }
           else if (Xbox.getAnalogHat(LeftHatX,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatX,  xboxNumber) < -12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) < -12000)
           {
-            
+
             Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
             int *arr, *motor_speed;
             char *dir ;
             int *theta;
-            
+
             if (fheading == 1)
             {
               refrenceheading_ = refrenceheading(mx, my);
@@ -169,17 +172,24 @@ void loop() {
             }
 
             lsm_heading = printHeading(mx, my, refrenceheading_);
-           
+
             dir = calc_motor_direction(Vector.Direction);
-            
-            double error = errorcal( lsm_heading, Vector.Direction);
-            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
+
+            double pid_calc= errorcal(lsm_heading, Vector.Direction);
+            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction,pid_calc); // done
             set_motor_values(motor_speed, dir);
-            debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, error );
-//            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
-//            motor_speed[0] = 0;
-//            motor_speed[1] = 0;
-//            motor_speed[2] = 0;
+
+            
+            
+            
+            
+            
+            debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, pid_calc );
+             
+            //            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
+            //            motor_speed[0] = 0;
+            //            motor_speed[1] = 0;
+            //            motor_speed[2] = 0;
           }
           else
           {
@@ -282,13 +292,24 @@ void soft_brake() {
   analogWrite(MC.pwm, 35);
 }
 
-int* calc_motor_speeds(int v, double theta)
+int* calc_motor_speeds(int v, double theta, double error )
 {
-  static int arr[3];
+  static int arr[9];
   theta = (double(theta) / 180) * PI;
+//  double f_theta = theta + error;
   arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5)));
   arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5)));
   arr[2] = abs(v * sin(theta));
+  
+  arr[3] = abs(v * ((cos(error) * 0.866) + (sin(error) * 0.5)));
+  arr[4] = abs(v * ((cos(error) * 0.866) - (sin(error) * 0.5)));
+  arr[5] = abs(v * sin(error));
+
+  arr[6]=arr[0]+arr[3];
+  arr[7]=arr[1]+arr[4];
+  arr[8]=arr[2]+arr[5];
+  
+  
   if ((theta < 180 && theta > 120) ||  (theta > -180 && theta < -120))
   {
     arr[2] = 0 ;
@@ -316,7 +337,7 @@ char* calc_motor_direction(double thet)
   {
     str[0] = 'l';
     str[1] = 'r';
-    str[2] = 'r';
+    str[2] = 'l';
   }
   else if (theta < 120 && theta > 60)
   {
@@ -328,13 +349,13 @@ char* calc_motor_direction(double thet)
   {
     str[0] = 'r';
     str[1] = 'l';
-    str[2] = 'l';
+    str[2] = 'r';
   }
   else if (theta > 0 && theta < 60)
   {
     str[0] = 'r';
     str[1] = 'l';
-    str[2] = 'r';
+    str[2] = 'l';
   }
   else if (theta < -60 && theta > -120)
   {
@@ -346,13 +367,10 @@ char* calc_motor_direction(double thet)
   {
     str[0] = 'l';
     str[1] = 'r';
-    str[2] = 'l';
+    str[2] = 'r';
   }
   return str;
 }
-
-
-
 
 
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir)
@@ -371,9 +389,14 @@ void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir)
 
 void set_motor_values(int *vel, char *dir)
 {
-  analogWrite(MA.pwm, vel[0]);
-  analogWrite(MB.pwm, vel[1]);
-  analogWrite(MC.pwm, vel[2]);
+int a,b,c;
+a= vel[0]+vel[3];
+b=vel[1]+vel[4];
+c=vel[2]+vel[5];
+
+  analogWrite(MA.pwm, a);
+  analogWrite(MB.pwm, b);
+  analogWrite(MC.pwm, c);
   write_motor_dir(MA.dir_r, MA.dir_l, dir[0]);
   write_motor_dir(MB.dir_r, MB.dir_l, dir[1]);
   write_motor_dir(MC.dir_r, MC.dir_l, dir[2]);
@@ -397,6 +420,7 @@ int* debug_serial_input()
 
 void debug_serial_output(int *vel, char *dir , double  theta , double lsm, double error )
 {
+
   Serial.print("MA:");
   Serial.print(vel[0]);
   Serial.print(" ");
@@ -406,6 +430,27 @@ void debug_serial_output(int *vel, char *dir , double  theta , double lsm, doubl
   Serial.print("MC:");
   Serial.print(vel[2]);
   Serial.print(" ");
+  
+  Serial.print("MA_pid:");
+  Serial.print(vel[3]);
+  Serial.print(" ");
+  Serial.print("MB_pid:");
+  Serial.print(vel[4]);
+  Serial.print(" ");
+  Serial.print("MC_pid:");
+  Serial.print(vel[5]);
+  Serial.print(" ");
+  
+  Serial.print("MA_f:");
+  Serial.print(vel[6]);
+  Serial.print(" ");
+  Serial.print("MB_f:");
+  Serial.print(vel[7]);
+  Serial.print(" ");
+  Serial.print("MC_f:");
+  Serial.print(vel[8]);
+  Serial.print(" ");
+
   Serial.print(dir[0]);
   Serial.print(" ");
   Serial.print(dir[1]);
@@ -605,14 +650,17 @@ double printHeading(float hx, float hy, double refrenceheading_)
 
 double errorcal(double lsm, double set_point)
 {
-  double error;
-  if (set_point < -90 && set_point > 90  )
-  { set_point += 180;
+  double error, goToAngle;
+  if (set_point < -90 && set_point > 90)
+  { 
+    set_point += 180;
   }
   if (lsm < -90 && lsm > 90)
   {
     lsm += 180;
   }
   error = set_point - lsm;
-  return error ;
-}
+ goToAngle=kp*error + ki*(error+prev_error );  
+  prev_error=error ;
+  return goToAngle ;
+  }
