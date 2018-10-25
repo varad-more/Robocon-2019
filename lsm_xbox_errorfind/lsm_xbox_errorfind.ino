@@ -81,10 +81,10 @@ void setup() {
   MA.pwm = 4;
   MB.pwm = 2;
   MC.pwm = 3;
-  MA.dir_r = 32;
-  MA.dir_l = 30;
-  MB.dir_r = 22;
-  MB.dir_l = 24;
+  MA.dir_r = 30;
+  MA.dir_l = 32;
+  MB.dir_r = 24;
+  MB.dir_l = 22;
   MC.dir_r = 26;
   MC.dir_l = 28;
 
@@ -234,7 +234,7 @@ double vector_direction(uint8_t  xboxNumber)
   }
 }
 
-void clock_wise(int pwm) {
+void anti_clock_wise(int pwm) {
   digitalWrite(MA.dir_r, HIGH);
   digitalWrite(MA.dir_l, LOW);
   digitalWrite(MB.dir_r, HIGH);
@@ -246,7 +246,7 @@ void clock_wise(int pwm) {
   analogWrite(MC.pwm, pwm);
 }
 
-void anti_clock_wise(int pwm) {
+void clock_wise(int pwm) {
   digitalWrite(MA.dir_r, LOW);
   digitalWrite(MA.dir_l, HIGH);
   digitalWrite(MB.dir_r, LOW);
@@ -314,39 +314,39 @@ char* calc_motor_direction(double thet)
   static char str[4];
   if (theta > -180 && theta < -120)   // forward
   {
-    str[0] = 'l';
-    str[1] = 'r';
-    str[2] = 'r';
+    str[0] = 'r';
+    str[1] = 'l';
+    str[2] = 'l';
   }
   else if (theta < 120 && theta > 60)
   {
-    str[0] = 'r';
-    str[1] = 'r';
-    str[2] = 'l';
+    str[0] = 'l';
+    str[1] = 'l';
+    str[2] = 'r';
   }
   else if (theta > -60 && theta < 0)
   {
-    str[0] = 'r';
-    str[1] = 'l';
-    str[2] = 'l';
+    str[0] = 'l';
+    str[1] = 'r';
+    str[2] = 'r';
   }
   else if (theta > 0 && theta < 60)
-  {
-    str[0] = 'r';
-    str[1] = 'l';
-    str[2] = 'r';
-  }
-  else if (theta < -60 && theta > -120)
-  {
-    str[0] = 'l';
-    str[1] = 'l';
-    str[2] = 'r';
-  }
-  else if (theta > 120 && theta < 180)
   {
     str[0] = 'l';
     str[1] = 'r';
     str[2] = 'l';
+  }
+  else if (theta < -60 && theta > -120)
+  {
+    str[0] = 'r';
+    str[1] = 'r';
+    str[2] = 'l';
+  }
+  else if (theta > 120 && theta < 180)
+  {
+    str[0] = 'r';
+    str[1] = 'l';
+    str[2] = 'r';
   }
   return str;
 }
