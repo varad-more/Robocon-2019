@@ -1,4 +1,4 @@
-#include "manual.cpp"
+//#include "manual.cpp"
 #include <XBOXRECV.h>
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
@@ -33,6 +33,7 @@ float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for M
 
 
 int fheading = 1;
+int counter;
 double refrenceheading_;
 double lsm_heading;
 
@@ -63,7 +64,7 @@ int vector_magnitude(uint8_t);
 void hard_brake(int);
 void soft_brake();
 
-int* calc_motor_speeds(int v, double theta);
+int* calc_motor_speeds(int v, double theta, double error);
 char* calc_motor_direction(double thet);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
@@ -155,13 +156,13 @@ void loop() {
           }
           else if (Xbox.getAnalogHat(LeftHatX,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatX,  xboxNumber) < -12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) < -12000)
           {
-            
+
             Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
             int *arr, *motor_speed;
             char *dir ;
             int *theta;
-            
+
             if (fheading == 1)
             {
               refrenceheading_ = refrenceheading(mx, my);
@@ -171,17 +172,17 @@ void loop() {
             }
 
             lsm_heading = printHeading(mx, my, refrenceheading_);
-           
+
             dir = calc_motor_direction(Vector.Direction);
-            
+
             double error = errorcal( lsm_heading, Vector.Direction);
-            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
+            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction, error); // done
             set_motor_values(motor_speed, dir);
             debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, error );
-//            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
-//            motor_speed[0] = 0;
-//            motor_speed[1] = 0;
-//            motor_speed[2] = 0;
+            //            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
+            //            motor_speed[0] = 0;
+            //            motor_speed[1] = 0;
+            //            motor_speed[2] = 0;
           }
           else
           {
@@ -284,29 +285,52 @@ void soft_brake() {
   analogWrite(MC.pwm, 35);
 }
 
-int* calc_motor_speeds(int v, double theta)
+int* calc_motor_speeds(int v, double theta, double error )
 {
-  static int arr[3];
+  static int arr[6];
+  int e;
+  float kp = 1;
+  e = kp * error;
   theta = (double(theta) / 180) * PI;
-  arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5)));
-  arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5)));
-  arr[2] = abs(v * sin(theta));
-  if ((theta < 180 && theta > 120) ||  (theta > -180 && theta < -120))
+  if (counter == 0)
   {
-    arr[2] = 0 ;
+    if (error > 0)
+    {
+      arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5))) + e;
+      arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5))) + e;
+      arr[2] = abs(v * sin(theta)) +  e ;
+    }
+    else
+    {
+      arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5))) - e;
+      arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5))) - e;
+      arr[2] = abs(v * sin(theta)) -  e ;
+    }
   }
-  if (arr[0] < 30 && arr[0] >= 0)
+  else
   {
-    arr[0] = 0;
+    if (error > 0)
+    {
+      arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5))) - e;
+      arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5))) - e;
+      arr[2] = abs(v * sin(theta)) -  e ;
+    }
+    else
+    {
+      arr[0] = abs(v * ((cos(theta) * 0.866) + (sin(theta) * 0.5))) + e;
+      arr[1] = abs(v * ((cos(theta) * 0.866) - (sin(theta) * 0.5))) + e;
+      arr[2] = abs(v * sin(theta)) +  e ;
+    }
   }
-  if (arr[1] < 30  && arr[1] >= 0)
-  {
-    arr[1] = 0;
-  }
-  if (arr[2] < 40 && arr[2] >= 0)
-  {
-    arr[2] = 0;
-  }
+   if (arr[0]<0) {arr[0]=0;}if (arr[1]<0) {arr[1]=0;}if (arr[2]<0) {arr[2]=0;}
+   if (arr[0]>255) {arr[0]=255;}if (arr[1]>255) {arr[1]=255;}if (arr[2]>255) {arr[2]=255;}   
+  
+  int c = maxSpeed + e;
+
+  arr[3] = map (arr[0], 0, c, 0, maxSpeed);
+  arr[4] = map (arr[1], 0, c, 0, maxSpeed);
+  arr[5] = map (arr[2], 0, c, 0, maxSpeed);
+
   return arr;
 }
 
@@ -373,9 +397,9 @@ void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir)
 
 void set_motor_values(int *vel, char *dir)
 {
-  analogWrite(MA.pwm, vel[0]);
-  analogWrite(MB.pwm, vel[1]);
-  analogWrite(MC.pwm, vel[2]);
+  analogWrite(MA.pwm, vel[3]);
+  analogWrite(MB.pwm, vel[4]);
+  analogWrite(MC.pwm, vel[5]);
   write_motor_dir(MA.dir_r, MA.dir_l, dir[0]);
   write_motor_dir(MB.dir_r, MB.dir_l, dir[1]);
   write_motor_dir(MC.dir_r, MC.dir_l, dir[2]);
@@ -408,6 +432,20 @@ void debug_serial_output(int *vel, char *dir , double  theta , double lsm, doubl
   Serial.print("MC:");
   Serial.print(vel[2]);
   Serial.print(" ");
+
+  Serial.print("Ma_f:");
+  Serial.print(vel[3]);
+  Serial.print(" ");
+
+  Serial.print("Mb_f:");
+  Serial.print(vel[4]);
+  Serial.print(" ");
+
+  Serial.print("Mc_f:");
+  Serial.print(vel[5]);
+  Serial.
+  print(" ");
+
   Serial.print(dir[0]);
   Serial.print(" ");
   Serial.print(dir[1]);
@@ -607,14 +645,19 @@ double printHeading(float hx, float hy, double refrenceheading_)
 
 double errorcal(double lsm, double set_point)
 {
-  double error;
-  if (set_point < -90 && set_point > 90  )
-  { set_point += 180;
+  double error, expected_sp;
+  if (set_point < -90)
+  { expected_sp = set_point + 180;
+    counter = 1;
   }
-  if (lsm < -90 && lsm > 90)
-  {
-    lsm += 180;
+  else if (set_point > 90)
+  { expected_sp = set_point - 180;
+    counter = 1;
   }
-  error = set_point - lsm;
+  else
+  { expected_sp = set_point;
+    counter = 0;
+  }
+  error =  expected_sp - lsm;
   return error ;
 }
