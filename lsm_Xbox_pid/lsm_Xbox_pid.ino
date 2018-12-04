@@ -38,13 +38,8 @@ int counter;
 double refrenceheading_;
 double lsm_heading, prev_error;
 
-const char startbit = '<';
-const char endbit = '>';
-void trasnmitToEsp(double a, double b, double c, bool debug);
-int transmitInfo[3];
-
 int xboxNumber = 0;
-#define  maxSpeed 255
+#define  maxSpeed 160
 USB Usb;
 XBOXRECV Xbox(&Usb);
 
@@ -190,7 +185,8 @@ void loop() {
             //            motor_speed[0] = 0;
             //            motor_speed[1] = 0;
             //            motor_speed[2] = 0;
-            trasnmitToEsp(Vector.Direction, lsm_heading, error,false);
+           
+              
           }
           else
           {
@@ -202,25 +198,6 @@ void loop() {
     }
   }   while (Xbox.Xbox360Connected[xboxNumber]);
   soft_brake();
-}
-
-void trasnmitToEsp(double a, double b, double c, bool debug) {
-  transmitInfo[0] = int(a * 100);
-  transmitInfo[1] = int(b * 100);
-  transmitInfo[2] = int(c * 100);
-  for (int i = 0; i < 3; i++)
-  {
-    Serial1.print(startbit);
-    Serial1.print(transmitInfo[i]);
-    Serial1.print(endbit);
-    Serial1.println();
-    if (debug == true) {
-      Serial.print(startbit);
-      Serial.print(transmitInfo[i]);
-      Serial.print(endbit);
-      Serial.println();
-    }
-  }
 }
 
 int vector_magnitude(uint8_t  xboxNumber)
@@ -316,9 +293,11 @@ int* calc_motor_speeds(int v, double theta, double error )
 {
   static int arr[7];
   int e;
-  float kp = 0.90, kd = 0.1;
+  float kp = 0.45, kd = 0.2;
   e = kp * error + kd * prev_error - error ;
+  e=0; 
 
+  
   theta = (double(theta) / 180) * PI;
   if (counter == 0)
   {
@@ -504,10 +483,11 @@ void debug_serial_output(int *vel, char *dir , double  theta , double lsm, doubl
   Serial.print("Error:");
   Serial.println(error);
 
-
-
-
-  ;
+int a,b,c;
+           a=theta ;
+           b=lsm ;
+           c=error;  
+              Serial1.write(a);Serial1.write(" ");Serial1.write(b);Serial1.write(" ");Serial1.write(c);
 }
 
 void basiclsm()

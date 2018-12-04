@@ -1,0 +1,1 @@
+python manage.py runserver 192.168.43.141:80
