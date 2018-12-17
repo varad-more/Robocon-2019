@@ -1,3 +1,5 @@
+//Coded by Abhijit
+
 float pi = 3.14159;
 float r1 = 0;
 float phi1 = 0;
@@ -16,7 +18,8 @@ float fb2 = 0;
 float Kp = 1;
 float error1 = 0;
 float error2 = 0;
-
+bool flag1 = 1;
+bool flag2 = 1;
 
 void setup()
 {
@@ -42,15 +45,27 @@ void setup()
 
 void loop()
 {
-  X = 20;
-  Y = 55;
-  calculateangle();
-  pid();
+  //  T1 = 175;
+  //  T2 = -90;
+  X = 2 0;
+  Y = 40;
+  gotopos();
+  
 }
 
+
+void gotopos()
+{
+  flag1 = 1;
+  flag2 = 1;
+  while (flag1 == 1 || flag2 == 1)
+  {
+    calculateangle();
+    onoffcontrol();
+  }
+}
 void calculateangle()
 {
-
   r1 = sqrt(X * X + Y * Y);
   phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
   phi2 = atan(Y / X);
@@ -61,9 +76,11 @@ void calculateangle()
   T1 = T1 * 180 / pi;
   T2 = T2 * 180 / pi;
 
+  T2 = T2 - 360;
 }
 
-void pid()
+
+void onoffcontrol()
 {
   fb1 = analogRead(A0);
   fb2 = analogRead(A1);
@@ -83,38 +100,52 @@ void pid()
   error1 = T1 - fb1;
   error2 = T2 - fb2;
 
+  if (abs(error1) < 1)
+  {
+    hardstop(4, 5);
+    flag1 = 0;
+  }
+  if (abs(error2) < 1)
+  {
+    hardstop(6, 7);
+    flag2 = 0;
+  }
 
   if (fb1 < T1 && fb2 < T2)
   {
-    forward(4, 5);
-    forward(6, 7);
-    delay(50);
+    if (flag1 == 1)
+      forward(4, 5);
+    if (flag2 == 1)
+      forward(6, 7);
+
     Serial.println("  forward");
   }
   else if (fb1 < T1 && fb2 > T2)
   {
-    forward(4, 5);
-    backward(6, 7);
-    delay(50);
+    if (flag1 == 1)
+      forward(4, 5);
+    if (flag2 == 1)
+      backward(6, 7);
+
     Serial.println("  backward");
   }
   else if (fb1 > T1 && fb2 < T2)
   {
-    backward(4, 5);
-    forward(6, 7);
-    delay(50);
+    if (flag1 == 1)
+      backward(4, 5);
+    if (flag2 == 1)
+      forward(6, 7);
+
     Serial.println("  forward");
   }
   else if (fb1 > T1  && fb2 > T2)
   {
-    backward(4, 5);
-    backward(6, 7);
-    delay(50);
+    if (flag1 == 1)
+      backward(4, 5);
+    if (flag2 == 1)
+      backward(6, 7);
+
     Serial.println("  backward");
-  }
-  else
-  {
-    hardstop();
   }
 }
 
@@ -130,13 +161,9 @@ void forward(int l1, int l2)
   digitalWrite(l2, HIGH);
 }
 
-void hardstop()
+void hardstop(int l1, int l2)
 {
-  digitalWrite(4, HIGH);
-  digitalWrite(5, HIGH);
-  digitalWrite(6, HIGH);
-  digitalWrite(7, HIGH);
+  digitalWrite(l1, LOW);
+  digitalWrite(l2, LOW);
 }
-
-//add iterations for limiting the loops or the algo wont converge
 
