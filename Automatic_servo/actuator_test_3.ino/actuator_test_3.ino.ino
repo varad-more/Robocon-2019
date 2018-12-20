@@ -47,8 +47,17 @@ void loop()
 {
   //  T1 = 175;
   //  T2 = -90;
-  X = 20;
+  X = -1;
+  Y = 60;
+  gotopos();
+  X = 40;
+  Y = 55;
+  gotopos();
+  X = -1;
   Y = 40;
+  gotopos();
+  X = -10;
+  Y = 55;
   gotopos();
 
 }
@@ -109,27 +118,27 @@ void calculate_neg_angle()
 {
   X = abs(X);
   r1 = sqrt(X * X + Y * Y);
-//  Serial.print("  r1  ");
-//  Serial.println(r1);
+  //  Serial.print("  r1  ");
+  //  Serial.println(r1);
   phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
-//  Serial.print("  phi1  ");
-//  Serial.println(phi1);
+  //  Serial.print("  phi1  ");
+  //  Serial.println(phi1);
   phi2 = atan(-Y / X);
   phi2 = pi + phi2;
-//  Serial.print("  phi2  ");
-//  Serial.println(phi2);
+  //  Serial.print("  phi2  ");
+  //  Serial.println(phi2);
   T1 = phi2 - phi1;
   phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-//  Serial.print("  phi3  ");
-//  Serial.println(phi3);
+  //  Serial.print("  phi3  ");
+  //  Serial.println(phi3);
   T2 = pi - phi3;
 
   T1 = T1 * 180 / pi;
   T2 = T2 * 180 / pi;
-//  Serial.print("  T1  ");
-//  Serial.println(T1);
-//  Serial.print("  T2  ");
-//  Serial.println(T2);
+  //  Serial.print("  T1  ");
+  //  Serial.println(T1);
+  //  Serial.print("  T2  ");
+  //  Serial.println(T2);
   //  T2 = T2 - 360;
 }
 
@@ -137,11 +146,29 @@ void calculate_neg_angle()
 void onoffcontrol()
 {
   fb1 = analogRead(A0);
-  fb2 = analogRead(A2);
+  fb2 = analogRead(A1);
 
-  fb1 = map(fb1, 812, 142, 105, 10);
-//  fb2 = map(fb2, 85, 558, 165, 25);
+  //  fb1 = map(fb1, 800, 940, 105, 10);
+  //  fb2 = map(fb2, 917, 279, 170, 15);
+  if (917 < fb1 && fb1 < 953)
+    fb1 = map(fb1, 917, 953, 45, 10);
+  else if (873 < fb1 && fb1 < 917)
+    fb1 = map(fb1, 873, 917, 90, 45);
+  else if (831 < fb1 && fb1 < 873)
+    fb1 = map(fb1, 831, 873, 115, 90);
+  else
+    fb1 = map(fb1, 831, 953, 115, 10);
 
+  if (278 < fb2 && fb2 < 465)
+    fb2 = map(fb2, 278, 465, 10, 45);
+  else if (465 < fb2 && fb2 < 863)
+    fb2 = map(fb2, 465, 863, 45, 90);
+  else if (863 < fb2 && fb2 < 892)
+    fb2 = map(fb2, 863, 892, 90, 135);
+  else if (892 < fb2 && fb2 < 916)
+    fb2 = map(fb2, 892, 916, 135, 165);
+  else
+    fb2 = map(fb2, 916, 278, 165, 10);
   Serial.print("  fb1  ");
   Serial.print(fb1);
   Serial.print("  T1  ");
