@@ -5,48 +5,61 @@ float a1 = 0;
 float a2 = 39;
 float a3 = 0;
 float a4 = 39;
-int relay[] = {4, 5, 6, 7};
-
-float T[] = {0, 0};
-bool flag[] = {1, 1};
-//*************************//
+int relay[4][4] = {{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
+float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+bool flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+//*****************************************************************************************************************************//
+//Class for leg
 
 class Leg
 {
+    int leg;  //private variable for leg number
+    float X;
+    float Y;
   public:
-  
-    // These maintain the current state
-    int ledState;                 // ledState used to set the LED
-    unsigned long previousMillis;   // will store last time LED was updated
-    
+    Leg(int _leg)
+    {
+      leg = _leg; //declare public variable
+    }
+    //*************************//
     //gotopos takes X and Y and Goes to that position
 
-    void gotopos(float X, float Y)
+    void gotopos(float _X, float _Y)
     {
-      flag[0] = 1;
-      flag[1] = 1;
+      Serial.println("In gotopos");
+      X = _X;
+      Y = _Y;
+      flag[0][leg] = 1;
+      flag[1][leg] = 1;
+    }
+    //*************************//
+    //choose function
+
+    void choose_fn()
+    {
+      Serial.println("In choose_fn");
       if (X < 0)
       {
-        while (flag[0] == 1 || flag[1] == 1)
+        if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
           calculate_neg_angle(X, Y);
-          onoffcontrol(X, Y);
         }
       }
       else
       {
-        while (flag[0] == 1 || flag[1] == 1)
+        if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
           calculate_pos_angle(X, Y);
-          onoffcontrol(X, Y);
         }
       }
     }
+
     //*************************//
     //calculates angle for positive X
 
     void calculate_pos_angle(float X, float Y)
     {
+      Serial.println("In calcpos");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -54,18 +67,19 @@ class Leg
       r1 = sqrt(X * X + Y * Y);
       phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
       phi2 = atan(Y / X);
-      T[0] = phi2 - phi1;
+      T[0][leg] = phi2 - phi1;
       phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-      T[1] = pi - phi3;
-      T[0] = T[0] * 180 / pi;
-      T[1] = T[1] * 180 / pi;
-
+      T[1][leg] = pi - phi3;
+      T[0][leg] = T[0][leg] * 180 / pi;
+      T[1][leg] = T[1][leg] * 180 / pi;
+      onoffcontrol();
     }
     //*************************//
     //calculates angle for niggative X
 
     void calculate_neg_angle(float X, float Y)
     {
+      Serial.println("In calcneg");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -75,16 +89,17 @@ class Leg
       phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
       phi2 = atan(-Y / X);
       phi2 = pi + phi2;
-      T[0] = phi2 - phi1;
+      T[0][leg] = phi2 - phi1;
       phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-      T[1] = pi - phi3;
-      T[0] = T[0] * 180 / pi;
-      T[1] = T[1] * 180 / pi;
+      T[1][leg] = pi - phi3;
+      T[0][leg] = T[0][leg] * 180 / pi;
+      T[1][leg] = T[1][leg] * 180 / pi;
+      onoffcontrol();
     }
     //*************************//
     //control logic for motion
 
-    void onoffcontrol(float X, float Y)
+    void onoffcontrol()
     {
       //Read the feedback pot
       float fb1 = 0;
@@ -118,66 +133,60 @@ class Leg
         fb2 = map(fb2, 916, 278, 165, 10);  //278,465,863,892,916
 
       //Print statements for debugging
+      Serial.print(leg);
+      Serial.print("  ");
       Serial.print("  fb1  ");
       Serial.print(fb1);
-      Serial.print("  T[0]  ");
-      Serial.print(T[0]);
+      Serial.print("  T[0][leg]  ");
+      Serial.print(T[0][leg]);
       Serial.print("  fb2  ");
       Serial.print(fb2);
-      Serial.print("  T[1]  ");
-      Serial.print(T[1]);
+      Serial.print("  T[1][leg]  ");
+      Serial.println(T[1][leg]);
 
       //Find error
-      error1 = T[0] - fb1;
-      error2 = T[1] - fb2;
+      error1 = T[0][leg] - fb1;
+      error2 = T[1][leg] - fb2;
 
       //Control statements for feedback based motion
       if (abs(error1) < 2)
       {
-        hardstop(4, 5);
-        flag[0] = 0;
+        hardstop(relay[leg][0], relay[leg][1]);
+        flag[0][leg] = 0;
       }
       if (abs(error2) < 2)
       {
-        hardstop(6, 7);
-        flag[1] = 0;
+        hardstop(relay[leg][2], relay[leg][3]);
+        flag[1][leg] = 0;
       }
 
-      if (fb1 < T[0] && fb2 < T[1])
+      if (fb1 < T[0][leg] && fb2 < T[1][leg])
       {
-        if (flag[0] == 1)
-          forward(4, 5);
-        if (flag[1] == 1)
-          forward(6, 7);
-
-        Serial.println("  forward");
+        if (flag[0][leg] == 1)
+          forward(relay[leg][0], relay[leg][1]);
+        if (flag[1][leg] == 1)
+          forward(relay[leg][2], relay[leg][3]);
       }
-      else if (fb1 < T[0] && fb2 > T[1])
+      else if (fb1 < T[0][leg] && fb2 > T[1][leg])
       {
-        if (flag[0] == 1)
-          forward(4, 5);
-        if (flag[1] == 1)
-          backward(6, 7);
-
-        Serial.println("  backward");
+        if (flag[0][leg] == 1)
+          forward(relay[leg][0], relay[leg][1]);
+        if (flag[1][leg] == 1)
+          backward(relay[leg][2], relay[leg][3]);
       }
-      else if (fb1 > T[0] && fb2 < T[1])
+      else if (fb1 > T[0][leg] && fb2 < T[1][leg])
       {
-        if (flag[0] == 1)
-          backward(4, 5);
-        if (flag[1] == 1)
-          forward(6, 7);
-
-        Serial.println("  forward");
+        if (flag[0][leg] == 1)
+          backward(relay[leg][0], relay[leg][1]);
+        if (flag[1][leg] == 1)
+          forward(relay[leg][2], relay[leg][3]);
       }
-      else if (fb1 > T[0]  && fb2 > T[1])
+      else if (fb1 > T[0][leg]  && fb2 > T[1][leg])
       {
-        if (flag[0] == 1)
-          backward(4, 5);
-        if (flag[1] == 1)
-          backward(6, 7);
-
-        Serial.println("  backward");
+        if (flag[0][leg] == 1)
+          backward(relay[leg][0], relay[leg][1]);
+        if (flag[1][leg] == 1)
+          backward(relay[leg][2], relay[leg][3]);
       }
     }
     //*************************//
@@ -202,11 +211,12 @@ class Leg
     }
     //*************************//
 };
+//*****************************************************************************************************************************//
 
-Leg leg1 = Leg();
-Leg leg2 = Leg();
-Leg leg3 = Leg();
-Leg leg4 = Leg();
+Leg leg1 = Leg(0);
+Leg leg2 = Leg(1);
+Leg leg3 = Leg(2);
+Leg leg4 = Leg(3);
 
 
 //Setup function to setup baud rate pinModes
@@ -231,15 +241,34 @@ void setup()
   digitalWrite(6, LOW);
   digitalWrite(7, LOW);
   delay(1000);
+
+  Serial.println("start");
+
+  OCR0A = 0xAF;
+  TIMSK0 |= _BV(OCIE0A);
+
+  leg1.gotopos(-20, 60);
+  leg3.gotopos(20, 60);
+}
+//*************************//
+//ISR
+
+SIGNAL(TIMER0_COMPA_vect)
+{
+  if (digitalRead(2) == HIGH)
+  {
+    Serial.println("In ISR");
+    leg1.choose_fn();
+    leg2.choose_fn();
+    leg3.choose_fn();
+    leg4.choose_fn();
+  }
 }
 //*************************//
 //loop function
 
 void loop()
 {
-  leg1.gotopos(-20, 60);
-  leg2.gotopos(-10, 60);
-  leg3.gotopos(-30, 60);
-  leg4.gotopos(-10, 50);
+
 }
 //*************************//
