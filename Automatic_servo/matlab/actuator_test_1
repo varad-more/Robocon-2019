@@ -1,0 +1,191 @@
+%%Declaring all the variables
+a1 = 0;
+a2 = 39;
+a3 = 0;
+a4 = 39;
+relay = [23, 25, 27, 29;31, 33, 35, 37;39, 41, 43, 45;47, 49, 51, 53];
+T = [0, 0;0, 0;0, 0;0, 0];
+flag = [0, 0;0, 0;0, 0;0, 0];
+
+classdef Leg
+    properties
+        leg;  %%private variable for leg number
+        X;
+        Y;
+        %%*************************%%
+        %%gotopos takes X and Y and Goes to that position
+    end
+    methods
+        function gotopos(X_, Y_)
+            Serial.println("In gotopos");
+            X = X_;
+            Y = Y_;
+            flag(0,leg) = 1;
+            flag(1,leg) = 1;
+        end
+        %%*************************%%
+        %%choose function
+        
+        function choose_fn()
+            Serial.println("In choose_fn");
+            if (X < 0)
+                if (flag(0,leg) == 1 || flag(1,leg) == 1)
+                    calculate_neg_angle(X, Y);
+                end
+            else
+                if (flag(0,leg) == 1 || flag(1,leg) == 1)
+                    calculate_pos_angle(X, Y);
+                end
+            end
+        end
+        %%*************************%%
+        %%calculates angle for positive X
+        
+        function calculate_pos_angle(X, Y)
+            Serial.println("In calcpos");
+            r1 = 0;
+            phi1 = 0;
+            phi2 = 0;
+            phi3 = 0;
+            r1 = sqrt(X * X + Y * Y);
+            phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
+            phi2 = atan(Y / X);
+            T(0,leg) = phi2 - phi1;
+            phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
+            T(1,leg) = pi - phi3;
+            T(0,leg) = T(0,leg) * 180 / pi;
+            T(1,leg) = T(1,leg) * 180 / pi;
+            onoffcontrol();
+        end
+        %%*************************%%
+        %%calculates angle for niggative X
+        
+        function calculate_neg_angle(X, Y)
+            Serial.println("In calcneg");
+            r1 = 0;
+            phi1 = 0;
+            phi2 = 0;
+            phi3 = 0;
+            X = abs(X);
+            r1 = sqrt(X * X + Y * Y);
+            phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
+            phi2 = atan(-Y / X);
+            phi2 = pi + phi2;
+            T(0,leg) = phi2 - phi1;
+            phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
+            T(1,leg) = pi - phi3;
+            T(0,leg) = T(0,leg) * 180 / pi;
+            T(1,leg) = T(1,leg) * 180 / pi;
+            onoffcontrol();
+        end
+        %%*************************%%
+        %%control logic for motion
+        
+        function onoffcontrol()
+            %%Read the feedback pot
+            fb1 = 0;
+            fb2 = 0;
+            error1 = 0;
+            error2 = 0;
+            
+            fb1 = analogRead(A0);
+            fb2 = analogRead(A1);
+            
+            %%Map pot1 to required range
+            if (917 < fb1 && fb1 < 953)
+                fb1 = map(fb1, 917, 953, 45, 10);
+            elseif (873 < fb1 && fb1 < 917)
+                fb1 = map(fb1, 873, 917, 90, 45);
+            elseif (831 < fb1 && fb1 < 873)
+                fb1 = map(fb1, 831, 873, 115, 90);
+            else
+                fb1 = map(fb1, 831, 953, 115, 10);  %%953,917,873,831
+            end
+            %%Map pot2 to required range
+            if (278 < fb2 && fb2 < 465)
+                fb2 = map(fb2, 278, 465, 10, 45);
+            elseif (465 < fb2 && fb2 < 863)
+                fb2 = map(fb2, 465, 863, 45, 90);
+            elseif (863 < fb2 && fb2 < 892)
+                fb2 = map(fb2, 863, 892, 90, 135);
+            elseif (892 < fb2 && fb2 < 916)
+                fb2 = map(fb2, 892, 916, 135, 165);
+            else
+                fb2 = map(fb2, 916, 278, 165, 10);  %%278,465,863,892,916
+            end
+            %%Prstatements for debugging
+            Serial.print(leg);
+            Serial.print("  ");
+            Serial.print("  fb1  ");
+            Serial.print(fb1);
+            Serial.print("  T(0,leg)  ");
+            Serial.print(T(0,leg));
+            Serial.print("  fb2  ");
+            Serial.print(fb2);
+            Serial.print("  T(1,leg)  ");
+            Serial.println(T(1,leg));
+            
+            %%Find error
+            error1 = T(0,leg) - fb1;
+            error2 = T(1,leg) - fb2;
+            
+            %%Control statements for feedback based motion
+            if (abs(error1) < 2)
+                hardstop(relay(leg,0), relay(leg,1));
+                flag(0,leg) = 0;
+            end
+            if (abs(error2) < 2)
+                hardstop(relay(leg,2), relay(leg,3));
+                flag(1,leg) = 0;
+            end
+            if (fb1 < T(0,leg) && fb2 < T(1,leg))
+                if (flag(0,leg) == 1)
+                    forward(relay(leg,0), relay(leg,1));
+                end
+                if (flag(1,leg) == 1)
+                    forward(relay(leg,2), relay(leg,3));
+                end
+            elseif (fb1 < T(0,leg) && fb2 > T(1,leg))
+                if (flag(0,leg) == 1)
+                    forward(relay(leg,0), relay(leg,1));
+                end
+                if (flag(1,leg) == 1)
+                    backward(relay(leg,2), relay(leg,3));
+                end
+                
+            elseif (fb1 > T(0,leg) && fb2 < T(1,leg))
+                if (flag(0,leg) == 1)
+                    backward(relay(leg,0), relay(leg,1));
+                end
+                if (flag(1,leg) == 1)
+                    forward(relay(leg,2), relay(leg,3));
+                end
+                
+            elseif (fb1 > T(0,leg)  && fb2 > T(1,leg))
+                if (flag(0,leg) == 1)
+                    backward(relay(leg,0), relay(leg,1));
+                end
+                if (flag(1,leg) == 1)
+                    backward(relay(leg,2), relay(leg,3));
+                end
+            end
+            %%*************************%%
+            %%back forward and stop functions
+            
+            function backward(l1, l2)
+                digitalfunctionWrite(l1, HIGH);
+                digitalWrite(l2, LOW);
+            end
+            function forward(l1, l2)
+                digitalWrite(l1, LOW);
+                digitalWrite(l2, HIGH);
+            end
+            function hardstop(l1, l2)
+                digitalWrite(l1, LOW);
+                digitalWrite(l2, LOW);
+            end
+            %%*************************%%
+        end
+    end
+end
+    %%*****************************************************************************************************************************%%
