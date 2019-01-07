@@ -1,0 +1,24 @@
+{
+    "Header": {
+        "Comment": "All values are metric (mm)",
+        "CreationDate": "2019-01-07T06:44:37Z",
+        "GenerationSoftware": {
+            "Application": "EAGLE",
+            "Vendor": "Autodesk",
+            "Version": "9.2.1"
+        },
+        "Part": "Single"
+    },
+    "Overall": {
+        "BoardThickness": 1.57,
+        "LayerNumber": 2,
+        "Name": {
+            "ProjectId": "relay_distribution_brd"
+        },
+        "Owner": "Ritoo verma <ritoov1@gmail.com>",
+        "Size": {
+            "X": 388,
+            "Y": 188
+        }
+    }
+}
