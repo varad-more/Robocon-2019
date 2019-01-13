@@ -1,4 +1,3 @@
-#include<Wire.h>
 //Declaring all the variables
 
 float pi = 3.14159;
@@ -25,11 +24,10 @@ class Leg
     //*************************//
     //gotopos takes X and Y and Goes to that position
 
-    void gotopos(float _X, float _Y)
+    void gotopos(float X_, float Y_)
     {
-      Serial.println("In gotopos");
-      X = _X;
-      Y = _Y;
+      X = X_;
+      Y = Y_;
       flag[0][leg] = 1;
       flag[1][leg] = 1;
     }
@@ -38,7 +36,6 @@ class Leg
 
     void choose_fn()
     {
-      Serial.println("In choose_fn");
       if (X < 0)
       {
         if (flag[0][leg] == 1 || flag[1][leg] == 1)
@@ -60,7 +57,6 @@ class Leg
 
     void calculate_pos_angle(float X, float Y)
     {
-      Serial.println("In calcpos");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -80,7 +76,6 @@ class Leg
 
     void calculate_neg_angle(float X, float Y)
     {
-      Serial.println("In calcneg");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -132,18 +127,6 @@ class Leg
         fb2 = map(fb2, 892, 916, 135, 165);
       else
         fb2 = map(fb2, 916, 278, 165, 10);  //278,465,863,892,916
-
-      //Print statements for debugging
-      Serial.print(leg);
-      Serial.print("  ");
-      Serial.print("  fb1  ");
-      Serial.print(fb1);
-      Serial.print("  T[0][leg]  ");
-      Serial.print(T[0][leg]);
-      Serial.print("  fb2  ");
-      Serial.print(fb2);
-      Serial.print("  T[1][leg]  ");
-      Serial.println(T[1][leg]);
 
       //Find error
       error1 = T[0][leg] - fb1;
@@ -219,13 +202,12 @@ Leg leg2 = Leg(1);
 Leg leg3 = Leg(2);
 Leg leg4 = Leg(3);
 
-
 //Setup function to setup baud rate pinModes
 
 void setup()
 {
-  Wire.begin(8);                // join i2c bus with address #8
-  Wire.onReceive(receiveEvent); // register event
+  int Time = millis();
+
   Serial.begin(115200);
 
   pinMode(4, OUTPUT);
@@ -233,7 +215,6 @@ void setup()
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
 
-  //  Serial.flush();
   digitalWrite(4, HIGH);
   digitalWrite(5, HIGH);
   digitalWrite(6, HIGH);
@@ -245,31 +226,20 @@ void setup()
   digitalWrite(7, LOW);
   delay(1000);
 
-  Serial.println("start");
-
   noInterrupts();
   OCR0A = 0xAF;
   TIMSK0 |= _BV(OCIE0A);
   interrupts();
-  //  leg1.gotopos(-20, 60);
-  //  leg2.gotopos(-20, 60);
-  //  leg3.gotopos(-20, 60);
-  //  leg4.gotopos(-20, 60);
-
 }
 //*************************//
 //ISR
 
 SIGNAL(TIMER0_COMPA_vect)
 {
-  if (digitalRead(2) == HIGH)
-  {
-    Serial.println("In ISR");
-    leg1.choose_fn();
-    leg2.choose_fn();
-    leg3.choose_fn();
-    leg4.choose_fn();
-  }
+  leg1.choose_fn();
+  leg2.choose_fn();
+  leg3.choose_fn();
+  leg4.choose_fn();
 }
 //*************************//
 //loop function
@@ -277,53 +247,32 @@ SIGNAL(TIMER0_COMPA_vect)
 void loop()
 {
 
+  walk();
 }
 //*************************//
-//on receive
 
-void receiveEvent(int howMany) {
-  Serial.println("In onReceive");
-  float v1, v2, v3, v4, v5, v6, v7, v8;
-  float x_ = Wire.read();    // receive byte as an integer
-  String x = (String)x_;
+void walk()
+{
+  Serial.println("walk");
+  float a = 10;
+  float b = 10;
+  float X = -20;
+  while (X < 0)
+  {
+    Serial.println("for");
 
-  int commaIndex = x.indexOf(',');
-  int secondCommaIndex = x.indexOf(',', commaIndex + 1);
-  int thirdCommaIndex = x.indexOf(',', secondCommaIndex + 1);
-  int fourthCommaIndex = x.indexOf(',', thirdCommaIndex + 1);
-  int fifthCommaIndex = x.indexOf(',', fourthCommaIndex + 1);
-  int sixthCommaIndex = x.indexOf(',', fifthCommaIndex + 1);
-  int seventhCommaIndex = x.indexOf(',', sixthCommaIndex + 1);
-  int eighthCommaIndex = x.indexOf(',', seventhCommaIndex + 1);
+    //    float Y = sqrt((1 - (((X + a) * (X + a)) / (a * a))) * (b * b)) - 50;/
+    float Y = sqrt(400  * (1 - (X * X / (500))));
+    Serial.print("  X  ");
+    Serial.print(X);
+    Serial.print("  Y ");
+    Serial.println(Y);
+    if (flag[0][0] == 0 || flag[1][0] == 0)
+      leg1.gotopos(X, Y);
 
-  String firstValue = x.substring(0, commaIndex);
-  String secondValue = x.substring(commaIndex + 1, secondCommaIndex);
-  String thirdValue = x.substring(secondCommaIndex + 1, thirdCommaIndex);
-  String fourthValue = x.substring(thirdCommaIndex + 1, fourthCommaIndex);
-  String fifthValue = x.substring(fifthCommaIndex + 1, sixthCommaIndex);
-  String sixthValue = x.substring(sixthCommaIndex + 1, seventhCommaIndex);
-  String seventhValue = x.substring(seventhCommaIndex + 1, eighthCommaIndex);
-  String eighthValue = x.substring(eighthCommaIndex + 1);
-
-  v1 = firstValue.toFloat();
-  v2 = secondValue.toFloat();
-  v3 = thirdValue.toFloat();
-  v4 = fourthValue.toFloat();
-  v5 = fifthValue.toFloat();
-  v6 = sixthValue.toFloat();
-  v7 = seventhValue.toFloat();
-  v8 = eighthValue.toFloat();
-  Serial.print(v1);
-  Serial.print(v2);
-  Serial.print(v3);
-  Serial.print(v4);
-  Serial.print(v5);
-  Serial.print(v6);
-  Serial.print(v7);
-  Serial.println(v8);
-  
-  leg1.gotopos(v1, v2);
-  leg2.gotopos(v3, v4);
-  leg3.gotopos(v5, v6);
-  leg4.gotopos(v7, v8);
+    //    while (flag[0][0] == 1 || flag[1][0] == 1)
+    //    {
+    //
+    //    }
+  }
 }
