@@ -1,11 +1,6 @@
-#include "manual.cpp"
-#include <XBOXRECV.h> //
-#ifdef dobogusinclude//
-#include <spi4teensy3.h>//
-#endif//
-#include <SPI.h>//
-#include <Wire.h>//
 #include <SFE_LSM9DS0.h>
+#include<Wire.h>
+#include<SoftWire.h>
 
 #define LSM9DS0_XM  0x1E // Would be 0x1E if SDO_XM is LOW
 #define LSM9DS0_G   0x6A // Would be 0x6A if SDO_G is LOW
@@ -36,16 +31,6 @@ int fheading = 1;
 double refrenceheading_;
 double lsm_heading;
 
-int xboxNumber = 0;//
-#define  maxSpeed 255//
-USB Usb;//
-XBOXRECV Xbox(&Usb);//
-
-typedef struct vector {//
-  double Direction;
-  int Magnitude;
-};
-
 typedef struct motor {
   int dir_r;
   int dir_l;
@@ -55,20 +40,20 @@ typedef struct motor {
 void clock_wise(int);
 void anti_clock_wise(int);
 
-struct vector Vector;//
-struct motor MA, MB, MC;
-double vector_direction(uint8_t);//
-int vector_magnitude(uint8_t);//
-
 void hard_brake(int);
 void soft_brake();
 
-int* calc_motor_speeds(int v, double theta);//
+
+
+struct motor MA, MB, MC;
+
+
 char* calc_motor_direction(double thet);
 void write_motor_dir(int MX_dir_r, int MX_dir_l, char dir);
 void set_motor_values(int vel[], char dir[]);
 int* debug_serial_input();
 void debug_serial_output (int *vel, char *dir,  double theta , double lsm , double error );
+
 
 //lsm functions prototypes
 double printHeading(float hx, float hy, float refrenceheading_);
@@ -77,9 +62,8 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
 double refrenceheading(float hx, float hy);
 void basiclsm();
 
-
 void setup() {
-
+  Wire.begin();
   MA.pwm = 4;
   MB.pwm = 2;
   MC.pwm = 3;
@@ -114,127 +98,21 @@ void setup() {
   dof.setGyroODR(dof.G_ODR_190_BW_125);  // Set gyro update rate to 190 Hz with the smallest bandwidth for low noise
   dof.setMagODR(dof.M_ODR_125); // Set magnetometer to update every 80 ms
   dof.calLSM9DS0(gbias, abias);
-
-  if (Usb.Init() == -1) {
-    Serial.print(F("\r\nOSC did not start"));
-    while (1); //halt
-  }
-  Serial.print(F("\r\nXbox Wireless Receiver Library Started"));
+  
 }
+
 
 void loop() {
-  do {
-    Usb.Task();
-    basiclsm();
-    if (Xbox.XboxReceiverConnected) {
-      for (uint8_t i = 0; i < 4; i++) {
-        if (Xbox.Xbox360Connected[i]) {
-          xboxNumber =  i;
-
-          Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
-          Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
-
-          if (Xbox.getButtonPress(B,  xboxNumber)) {
-            hard_brake(255);
-            Serial.println("hard_brake");
-          }
-
-          else if (Xbox.getButtonPress(A,  xboxNumber)) {
-            soft_brake();
-            Serial.println("soft_brake");
-          }
-          else if (Xbox.getButtonPress(R1,  xboxNumber)) {
-            clock_wise(40);
-            Serial.println("Clock");
-            fheading = 1;
-          }
-          else if (Xbox.getButtonPress(L1,  xboxNumber)) {
-            anti_clock_wise(40);
-            Serial.println("Anticlock");
-            fheading = 1;
-          }
-          else if ((Xbox.getAnalogHat(LeftHatX,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatX,  xboxNumber) < -12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) < -12000) && (Xbox.getButtonPress(R2,  xboxNumber)>0))
-          {
-            
-            Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
-            Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
-            int *arr, *motor_speed;
-            char *dir ;
-            int *theta;
-            
-            if (fheading == 1)
-            {
-              refrenceheading_ = refrenceheading(mx, my);
-              Serial.println("refrance taken as");
-              Serial.println(refrenceheading_);
-              fheading++;
-            }
-
-            lsm_heading = printHeading(mx, my, refrenceheading_);
-           
-            dir = calc_motor_direction(Vector.Direction);
-            
-            double error = errorcal( lsm_heading, Vector.Direction);
-            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
-            set_motor_values(motor_speed, dir);
-            debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, error );
-//            Vector.Magnitude = 0; //GET VECTOR MAGNITUDE
-//            motor_speed[0] = 0;
-//            motor_speed[1] = 0;
-//            motor_speed[2] = 0;
-          }
-          else
-          {
-            soft_brake();
-            Serial.println("soft_brake");
-          }
-        }
-      }
-    }
-  }   while (Xbox.Xbox360Connected[xboxNumber]);
-  soft_brake();
-}
-
-int vector_magnitude(uint8_t  xboxNumber)
-{
-  int magnitude = Xbox.getButtonPress(R2,  xboxNumber);
-  magnitude = map(magnitude, 0, 255, 0, maxSpeed);
-  return magnitude;
-}
-
-double vector_direction(uint8_t  xboxNumber)
-{
-  double Rx = 0, Ry = 0;
-  double angle = 0, dybydx = 0;
-  //  double threshold = 12000;
-  Rx = Xbox.getAnalogHat(LeftHatX,  xboxNumber);
-  Ry = Xbox.getAnalogHat(LeftHatY,  xboxNumber);
-  {
-    dybydx = (Ry / Rx);
-    angle = atan(dybydx);
-    if (Rx >= 0 && Ry >= 0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, 0, 90, 90, 0);
-    }
-    else if (Rx < 0 && Ry >= 0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, -90, 0, 0, -90);// 90 180
-    }
-    else if (Rx < 0 && Ry < 0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, 0, 90, -90, -180);//180 270
-    }
-    else if (Rx >= 0 && Ry < 0)
-    {
-      angle = angle  * (180 / PI);
-      angle = map(angle, -90, 0, 180, 90);//270 360
-    }
-    return angle;
+  // put your main code here, to run repeatedly:
+Wire.requestFrom(8,2);
+while (Wire.available())
+ {
+  int a = Wire.read();
+  Serial.print(a);
   }
+
 }
+
 
 void anti_clock_wise(int pwm) {
   digitalWrite(MA.dir_r, HIGH);

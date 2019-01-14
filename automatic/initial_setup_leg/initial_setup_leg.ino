@@ -59,20 +59,20 @@ void loop() {
   // /*
   // exp_1();
   // exp_2();*/
-  //   cont_2();
-//  cont_1();
+     cont_2();
+  cont_1();
   //int a = analogRead(A1);
   //Serial.print(a);
   //int b = analogRead(A0);
   //Serial.print(" ");
   //Serial.println(b);
-  float ang1, ang2;
-  int p1, p2;
-  ang1 = 135;
-  ang2 = -135;
-  p1 = map (ang1, 70, 170, 753, 179);
-  p2 = map (ang2, -160, 15, 110, 858);
-  movement (p1, p2);
+//  float ang1, ang2;
+//  int p1, p2;
+//  ang1 = 135;
+//  ang2 = -135;
+//  p1 = map (ang1, 70, 170, 753, 179);
+//  p2 = map (ang2, -160, 15, 110, 858);
+//  movement (p1, p2);
   //exp_1();
   //  int m = analogRead(pot_1);
   //  Serial.println(m);
