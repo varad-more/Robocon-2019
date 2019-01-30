@@ -1,3 +1,17 @@
+#include "I2Cdev.h"
+#include "MPU6050.h"
+#include "Wire.h"
+
+//MPU6050 accelgyro;
+MPU6050 accelgyro(0x69); // <-- use for AD0 high
+
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
+#define OUTPUT_READABLE_ACCELGYRO
+
+
+
 //Declaring all the variables
 
 float pi = 3.14159;
@@ -7,9 +21,7 @@ float a3 = 0;
 float a4 = 39;
 int relay[4][4] = {{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-bool flag_leg[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-float mode[4] = {0, 0, 0, 0};
-float state_walk[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+bool flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 //*****************************************************************************************************************************//
 //Class for leg
 
@@ -26,28 +38,30 @@ class Leg
     //*************************//
     //gotopos takes X and Y and Goes to that position
 
-    void gotopos(float X_, float Y_)
+    void gotopos(float _X, float _Y)
     {
-      X = X_;
-      Y = Y_;
-      flag_leg[0][leg] = 1;
-      flag_leg[1][leg] = 1;
+      Serial.println("In gotopos");
+      X = _X;
+      Y = _Y;
+      flag[0][leg] = 1;
+      flag[1][leg] = 1;
     }
     //*************************//
     //choose function
 
     void choose_fn()
     {
+      Serial.println("In choose_fn");
       if (X < 0)
       {
-        if (flag_leg[0][leg] == 1 || flag_leg[1][leg] == 1)
+        if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
           calculate_neg_angle(X, Y);
         }
       }
       else
       {
-        if (flag_leg[0][leg] == 1 || flag_leg[1][leg] == 1)
+        if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
           calculate_pos_angle(X, Y);
         }
@@ -59,6 +73,7 @@ class Leg
 
     void calculate_pos_angle(float X, float Y)
     {
+      Serial.println("In calcpos");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -78,6 +93,7 @@ class Leg
 
     void calculate_neg_angle(float X, float Y)
     {
+      Serial.println("In calcneg");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -104,31 +120,27 @@ class Leg
       float fb2 = 0;
       float error1 = 0;
       float error2 = 0;
+      digitalWrite(8, HIGH);
+      accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+      fb1 = (0.02 * ax) + (0.98 * gx);
+      digitalWrite(8, LOW);
+      digitalWrite(9, HIGH);
+      accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+      fb2 = (0.02 * ax) + (0.98 * gx);
+      digitalWrite(9, LOW);
 
-      fb1 = analogRead(A0);
-      fb2 = analogRead(A1);
 
-      //Map pot1 to required range
-      if (917 < fb1 && fb1 < 953)
-        fb1 = map(fb1, 917, 953, 45, 10);
-      else if (873 < fb1 && fb1 < 917)
-        fb1 = map(fb1, 873, 917, 90, 45);
-      else if (831 < fb1 && fb1 < 873)
-        fb1 = map(fb1, 831, 873, 115, 90);
-      else
-        fb1 = map(fb1, 831, 953, 115, 10);  //953,917,873,831
-
-      //Map pot2 to required range
-      if (278 < fb2 && fb2 < 465)
-        fb2 = map(fb2, 278, 465, 10, 45);
-      else if (465 < fb2 && fb2 < 863)
-        fb2 = map(fb2, 465, 863, 45, 90);
-      else if (863 < fb2 && fb2 < 892)
-        fb2 = map(fb2, 863, 892, 90, 135);
-      else if (892 < fb2 && fb2 < 916)
-        fb2 = map(fb2, 892, 916, 135, 165);
-      else
-        fb2 = map(fb2, 916, 278, 165, 10);  //278,465,863,892,916
+      //Print statements for debugging
+      Serial.print(leg);
+      Serial.print("  ");
+      Serial.print("  fb1  ");
+      Serial.print(fb1);
+      Serial.print("  T[0][leg]  ");
+      Serial.print(T[0][leg]);
+      Serial.print("  fb2  ");
+      Serial.print(fb2);
+      Serial.print("  T[1][leg]  ");
+      Serial.println(T[1][leg]);
 
       //Find error
       error1 = T[0][leg] - fb1;
@@ -138,40 +150,40 @@ class Leg
       if (abs(error1) < 2)
       {
         hardstop(relay[leg][0], relay[leg][1]);
-        flag_leg[0][leg] = 0;
+        flag[0][leg] = 0;
       }
       if (abs(error2) < 2)
       {
         hardstop(relay[leg][2], relay[leg][3]);
-        flag_leg[1][leg] = 0;
+        flag[1][leg] = 0;
       }
 
       if (fb1 < T[0][leg] && fb2 < T[1][leg])
       {
-        if (flag_leg[0][leg] == 1)
+        if (flag[0][leg] == 1)
           forward(relay[leg][0], relay[leg][1]);
-        if (flag_leg[1][leg] == 1)
+        if (flag[1][leg] == 1)
           forward(relay[leg][2], relay[leg][3]);
       }
       else if (fb1 < T[0][leg] && fb2 > T[1][leg])
       {
-        if (flag_leg[0][leg] == 1)
+        if (flag[0][leg] == 1)
           forward(relay[leg][0], relay[leg][1]);
-        if (flag_leg[1][leg] == 1)
+        if (flag[1][leg] == 1)
           backward(relay[leg][2], relay[leg][3]);
       }
       else if (fb1 > T[0][leg] && fb2 < T[1][leg])
       {
-        if (flag_leg[0][leg] == 1)
+        if (flag[0][leg] == 1)
           backward(relay[leg][0], relay[leg][1]);
-        if (flag_leg[1][leg] == 1)
+        if (flag[1][leg] == 1)
           forward(relay[leg][2], relay[leg][3]);
       }
       else if (fb1 > T[0][leg]  && fb2 > T[1][leg])
       {
-        if (flag_leg[0][leg] == 1)
+        if (flag[0][leg] == 1)
           backward(relay[leg][0], relay[leg][1]);
-        if (flag_leg[1][leg] == 1)
+        if (flag[1][leg] == 1)
           backward(relay[leg][2], relay[leg][3]);
       }
     }
@@ -197,113 +209,43 @@ class Leg
     }
     //*************************//
 };
-
-
-Leg leg0 = Leg(0);
-Leg leg1 = Leg(1);
-Leg leg2 = Leg(2);
-Leg leg3 = Leg(3);
-
-class walkGait
-{
-    int diff;
-    int leg;
-    float X;
-    float Y;
-  public:
-    walkGait(int _leg)
-    {
-      leg = _leg;
-    }
-    //*************************//
-    void givePath()
-    {
-      if (mode[leg] == 0)
-      {
-        choose_mode();
-      }
-      if (state_walk[1][leg] == 0)
-      {
-        mode[leg] = 1;
-        choose_mode();
-      }
-      if (state_walk[1][leg] == 0)
-      {
-        mode[leg] = 2;
-        choose_mode();
-      }
-    }
-    //*************************//
-    //choose function
-
-    void choose_mode()
-    {
-      if (mode[leg] == 0)
-      {
-        line(1);
-      }
-      else if (mode[leg] == 1)
-      {
-        sine();
-      }
-      else if (mode[leg] == 2)
-      {
-        line(3);
-      }
-    }
-
-    void line(int dist)
-    {
-      state_walk[0][leg] = state_walk[0][leg] - dist;
-      if (leg == 0)
-        leg0.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg1.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg2.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else
-        leg3.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      Serial.print(state_walk[0][leg]);
-      Serial.println(state_walk[1][leg]);
-    }
-
-    void sine()
-    {
-      state_walk[0][leg] = state_walk[0][leg] + 0.1;
-      state_walk[1][leg] = sin(state_walk[0][leg]);
-      if (leg == 0)
-        leg0.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg1.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg2.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else
-        leg3.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      Serial.print(state_walk[0][leg]);
-      Serial.println(state_walk[1][leg]);
-    }
-};
 //*****************************************************************************************************************************//
 
-walkGait path0 = walkGait(0);
-walkGait path1 = walkGait(1);
-walkGait path2 = walkGait(2);
-walkGait path3 = walkGait(3);
+Leg leg1 = Leg(0);
+Leg leg2 = Leg(1);
+Leg leg3 = Leg(2);
+Leg leg4 = Leg(3);
 
 
 //Setup function to setup baud rate pinModes
 
 void setup()
 {
-  int Time = millis();
-
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  digitalWrite(8, LOW);
+  digitalWrite(9, LOW);
   Serial.begin(115200);
+
+  // join I2C bus (I2Cdev library doesn't do this automatically)
+  Wire.begin();
+
+  // initialize device
+  Serial.println("Initializing I2C devices...");
+  accelgyro.initialize();
+
+  // verify connection
+  Serial.println("Testing device connections...");
+  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+
+
 
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
 
+  //  Serial.flush();
   digitalWrite(4, HIGH);
   digitalWrite(5, HIGH);
   digitalWrite(6, HIGH);
@@ -315,25 +257,31 @@ void setup()
   digitalWrite(7, LOW);
   delay(1000);
 
+  Serial.println("start");
+
   noInterrupts();
   OCR0A = 0xAF;
   TIMSK0 |= _BV(OCIE0A);
   interrupts();
+  leg1.gotopos(-20, 60);
+  //  leg2.gotopos(-20, 60);
+  //  leg3.gotopos(-20, 60);
+  //  leg4.gotopos(-20, 60);
+
 }
 //*************************//
 //ISR
 
 SIGNAL(TIMER0_COMPA_vect)
 {
-  leg0.choose_fn();
-  leg1.choose_fn();
-  leg2.choose_fn();
-  leg3.choose_fn();
-  //*************************//
-  path0.choose_mode();
-  path1.choose_mode();
-  path2.choose_mode();
-  path3.choose_mode();
+  if (digitalRead(2) == HIGH)
+  {
+    Serial.println("In ISR");
+    leg1.choose_fn();
+    leg2.choose_fn();
+    leg3.choose_fn();
+    leg4.choose_fn();
+  }
 }
 //*************************//
 //loop function
