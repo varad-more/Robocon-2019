@@ -26,6 +26,9 @@ float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor dat
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
+char  stri[100];
+
+ 
 
 
 int fheading = 1;
@@ -63,17 +66,22 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
 double refrenceheading(float hx, float hy);
 void basiclsm();
 
+
+///
+
+    String  pwm_1 ,dir_l;
+
 void setup() {
   Wire.begin();
-//  MA.pwm = 4;
-//  MB.pwm = 2;
-//  MC.pwm = 3;
-//  MA.dir_r = 30;
-//  MA.dir_l = 32;
-//  MB.dir_r = 24;
-//  MB.dir_l = 22;
-//  MC.dir_r = 26;
-//  MC.dir_l = 28;
+  //  MA.pwm = 4;
+  //  MB.pwm = 2;
+  //  MC.pwm = 3;
+  //  MA.dir_r = 30;
+  //  MA.dir_l = 32;
+  //  MB.dir_r = 24;
+  //  MB.dir_l = 22;
+  //  MC.dir_r = 26;
+  //  MC.dir_l = 28;
 
   pinMode(MA.dir_r, OUTPUT);
   pinMode(MA.dir_l, OUTPUT);
@@ -99,21 +107,88 @@ void setup() {
   dof.setGyroODR(dof.G_ODR_190_BW_125);  // Set gyro update rate to 190 Hz with the smallest bandwidth for low noise
   dof.setMagODR(dof.M_ODR_125); // Set magnetometer to update every 80 ms
   dof.calLSM9DS0(gbias, abias);
-  
+
 }
 
 
 void loop() {
   // put your main code here, to run repeatedly:
-Wire.requestFrom(8,1);
-Serial.println("started");
-while (Wire.available())
- {
-  char a = Wire.read();
-  Serial.print(a);
-  Serial.print(" ");
-  Serial.print("started");
+  Wire.requestFrom(8, 16);
+ // Serial.println("started");
+  int i = 0;
+  while (Wire.available())
+  {
+    int *m_speed;
+    char *bot_dir;
+    char a = Wire.read();
+    stri[i] = a;
+    i++;
+    String st = String(stri); 
+    Serial.println();
+    Serial.print(st);
+    //Serial.print(" ");
+    int comma_1 = st.indexOf(',');
+    int comma_2 = st.indexOf(',',comma_1+1);
+    int comma_3 = st.indexOf(',',comma_2+1);
+    int comma_4 = st.indexOf(',',comma_3+1);
+    int comma_5 = st.indexOf(',',comma_4+1);
+    Serial.println();
+    Serial.print(comma_1);Serial.print(" ");
+    Serial.print(comma_2);Serial.print(" ");
+    Serial.print(comma_3);Serial.print(" ");
+    Serial.print(comma_4);Serial.print(" ");
+    Serial.print(comma_5);Serial.print(" ");
+
+    int hrd_brk,soft_brk,anti_clo,clo,pwm,dir ;
+    
+    hrd_brk = (st.substring(1,comma_1).toInt());
+    soft_brk = (st.substring(comma_1+1,comma_2).toInt());
+    anti_clo = (st.substring(comma_2+1,comma_3).toInt());
+    clo = (st.substring(comma_3+1,comma_4).toInt());   
+    String  pwm_l = (st.substring(comma_4+1,comma_5));
+    String  dir_l = (st.substring(comma_5+1));
+    Serial.print (pwm_l);Serial.print(" ");Serial.print(dir_l); 
+    
+    pwm = pwm_l.toInt();
+    dir = dir_l.toInt();
+   /* 
+    Serial.print (" ");
+    Serial.print (pwm);
+    Serial.print (" ");
+    Serial.print (dir);
+    */
+    if (hrd_brk == 1 )
+    {
+      Serial.print(hrd_brk);
+      hard_brake(255);
+    }
+    else if (soft_brk==1)
+    {
+      Serial.print(soft_brk);
+      soft_brake();  
+    }
+    
+    else if (anti_clo == 1)
+    {
+      Serial.print(anti_clo);
+      anti_clock_wise(120);
+    }
+    else if (clo ==1)
+    {
+      Serial.print(clo);
+      clock_wise(120);  
+    }
+    else 
+    {
+      Serial.print(pwm);Serial.print(" ");Serial.print(dir);
+      m_speed=calc_motor_speeds(pwm,dir);
+      bot_dir = calc_motor_direction(dir);
+      set_motor_values(m_speed,bot_dir);
+    }  
+  
   }
+//  Serial.print(st);
+
 
 }
 

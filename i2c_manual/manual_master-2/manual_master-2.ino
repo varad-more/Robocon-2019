@@ -2,6 +2,7 @@
 #include<Wire.h>
 #include<SoftWire.h>
 
+
 #define LSM9DS0_XM  0x1E // Would be 0x1E if SDO_XM is LOW
 #define LSM9DS0_G   0x6A // Would be 0x6A if SDO_G is LOW
 
@@ -26,7 +27,8 @@ float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor dat
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
-
+String mystr= "";
+   
 
 int fheading = 1;
 double refrenceheading_;
@@ -99,22 +101,25 @@ void setup() {
   dof.setGyroODR(dof.G_ODR_190_BW_125);  // Set gyro update rate to 190 Hz with the smallest bandwidth for low noise
   dof.setMagODR(dof.M_ODR_125); // Set magnetometer to update every 80 ms
   dof.calLSM9DS0(gbias, abias);
-  
+  Wire.onReceive(receiveEvent);  
 }
 
 
 void loop() {
   // put your main code here, to run repeatedly:
-Wire.requestFrom(8,1);
-Serial.println("started");
-while (Wire.available())
- {
-  char a = Wire.read();
-  Serial.print(a);
-  Serial.print(" ");
-  Serial.print("started");
-  }
 
+
+
+}
+
+void receiveEvent (int howMany)
+{
+ mystr= "";
+ while(Wire.available())
+  {
+   mystr += (char)Wire.read(); 
+  } 
+  
 }
 
 

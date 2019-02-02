@@ -9,7 +9,13 @@ int xboxNumber = 0;
 #define  maxSpeed 255
 USB Usb;
 XBOXRECV Xbox(&Usb);
-
+String mystring;
+String anti_cl,cl,hard_brk,soft_brk,pwm,dir;
+//int c_1=myString.indexOf(',');
+//int c_2=myString.indexOf(',',c_1+1);
+//int c_3=myString.indexOf(',',c_2+1);
+//int c_4=myString.indexOf(',',c_3+1);
+//int c_5=myString.indexOf(',',c_4+1);
 
 typedef struct vector {
   double Direction;
@@ -17,6 +23,7 @@ typedef struct vector {
 };
 
 struct vector Vector;
+int g,o,l,lag=0;
 
 double vector_direction(uint8_t);
 int vector_magnitude(uint8_t);
@@ -42,13 +49,13 @@ void setup ()
 
 void loop ()
 {
-
-  requestEvent();  
+     requestXbox();
+//  requestEvent();  
 }
-void requestEvent()
+
+void requestXbox()
 {
   do {
-    
      Usb.Task();
     if (Xbox.XboxReceiverConnected) {
       for (uint8_t i = 0; i < 4; i++) {
@@ -59,54 +66,33 @@ void requestEvent()
           Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
 
           if (Xbox.getButtonPress(B,  xboxNumber)) {
-            Wire.write(1);
+            hard_brk = String(1);
             Serial.println("hard_brake");
           }
 
           else if (Xbox.getButtonPress(A,  xboxNumber)) {
-            Wire.write(2);
+            soft_brk = String(1);
             Serial.println("soft_brake");
           }
           else if (Xbox.getButtonPress(R1,  xboxNumber)) {
-            Wire.write(3);
+            cl= String(1);
             Serial.println("Clock");
             // fheading = 1;
           }
           else if (Xbox.getButtonPress(L1,  xboxNumber)) {
-            Wire.write(4);
+            anti_cl= String (1);
             Serial.println("Anticlock");
             // fheading = 1;
+           
           }
           else if ((Xbox.getAnalogHat(LeftHatX,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) > 12000 || Xbox.getAnalogHat(LeftHatX,  xboxNumber) < -12000 || Xbox.getAnalogHat(LeftHatY,  xboxNumber) < -12000) && (Xbox.getButtonPress(R2,  xboxNumber) > 0))
           {
 
             Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
-            //            int *arr, *motor_speed;
-            //            char *dir ;
-            //            int *theta;
-            //
-            //         //   if (fheading == 1)
-            //            {
-            //              refrenceheading_ = refrenceheading(mx, my);
-            //              Serial.println("refrance taken as");
-            //              Serial.println(refrenceheading_);
-            //              fheading++;
-            //            }
-            //
-            //            lsm_heading = printHeading(mx, my, refrenceheading_);
-            //
-            //            dir = calc_motor_direction(Vector.Direction);
-            //
-            //            double error = errorcal( lsm_heading, Vector.Direction);
-            //            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
-            //            set_motor_values(motor_speed, dir);
-            //            debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, error );
-          }
-          else
-          {
-            //            soft_brake();
-            Serial.println("soft_brake");
+            pwm = String (Vector.Magnitude);
+            dir = String (Vector.Direction);
+           
           }
         }
       }
@@ -114,6 +100,12 @@ void requestEvent()
   }   while (Xbox.Xbox360Connected[xboxNumber]);
   //  soft_brake();
 
+  
+  }
+void requestEvent()
+{
+  mystring= hard_brk + ',' + soft_brk + ',' + cl + ',' + anti_cl + ',' + pwm + ',' + dir ;
+  Wire.write(mystring.c_str());
 }
 
 

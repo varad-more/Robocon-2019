@@ -49,7 +49,7 @@ bool MPU6050::begin(mpu6050_dps_t scale, mpu6050_range_t range, int mpua)
     actualThreshold = 0;
 
     // Check MPU6050 Who Am I Register
-    if (fastRegister8(MPU6050_REG_WHO_AM_I) != 0x68)
+    if (fastRegister8(MPU6050_REG_WHO_AM_I) != mpuAddress)  // changed by Prathamesh Nerkar on 29/01/2019
     {
 	return false;
     }

@@ -20,12 +20,8 @@ void setup()
 
   Serial.println("Initialize MPU6050");
 
-  pinMode(MPU_1,OUTPUT);
-  pinMode(MPU_2,OUTPUT);
-  digitalWrite(MPU_1,LOW);
-  digitalWrite(MPU_2,LOW);
-  
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
+
+  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G));
   {
     Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
     delay(500);
@@ -36,9 +32,9 @@ void loop()
 {
  
     // Read normalized values 
-  for (int i =0 ; i < 50 ;i++)
+  for (int i =0 ; i < 30 ;i++)
   {
-    if (i<25)
+    if (i<15)
     {
       digitalWrite(MPU_1, HIGH); digitalWrite(MPU_2, LOW); 
     
@@ -49,14 +45,11 @@ void loop()
   int roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
   // Output
-  Serial.print("1");
-  Serial.print(" ");
   Serial.print(" Pitch = ");
   Serial.print(pitch);
   Serial.print(" Roll = ");
   Serial.print(roll);
   Serial.println();
-  delay(500);
     }
     else   
      {
@@ -69,14 +62,12 @@ void loop()
   int roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
   // Output
-  Serial.print("2");
-  Serial.print(" ");
   Serial.print(" Pitch = ");
   Serial.print(pitch);
   Serial.print(" Roll = ");
   Serial.print(roll);
   Serial.println();
-    delay(500);
+    
       }  
   }
 }

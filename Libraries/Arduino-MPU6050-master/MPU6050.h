@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WProgram.h"
 #endif
 
-#define MPU6050_ADDRESS             (0x68) // 0x69 when AD0 pin to Vcc
+#define MPU6050_ADDRESS             (0x69) // 0x69 when AD0 pin to Vcc // changed by Prathamesh Nerkar on 29/01/2019
 
 #define MPU6050_REG_ACCEL_XOFFS_H     (0x06)
 #define MPU6050_REG_ACCEL_XOFFS_L     (0x07)

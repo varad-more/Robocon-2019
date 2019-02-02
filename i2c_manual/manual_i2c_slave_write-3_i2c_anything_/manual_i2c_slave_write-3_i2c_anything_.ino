@@ -3,7 +3,7 @@
 #include <spi4teensy3.h>
 #endif
 #include <SPI.h>
-#include <Wire.h>
+#include <I2C_Anything.h>
 
 int xboxNumber = 0;
 #define  maxSpeed 255
@@ -17,6 +17,7 @@ typedef struct vector {
 };
 
 struct vector Vector;
+int g;
 
 double vector_direction(uint8_t);
 int vector_magnitude(uint8_t);
@@ -34,21 +35,21 @@ void setup ()
     while (1); //halt
   }
   Serial.print(F("\r\nXbox Wireless Receiver Library Started"));
-  Wire.begin(8);
-  Wire.onRequest(requestEvent);
+  Wire.beginTransmission(8);
+ // Wire.onRequest(requestEvent);
 
   
 }
 
 void loop ()
 {
-
-  requestEvent();  
+     requestXbox();
+//  requestEvent();  
 }
-void requestEvent()
+
+void requestXbox()
 {
   do {
-    
      Usb.Task();
     if (Xbox.XboxReceiverConnected) {
       for (uint8_t i = 0; i < 4; i++) {
@@ -59,21 +60,21 @@ void requestEvent()
           Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
 
           if (Xbox.getButtonPress(B,  xboxNumber)) {
-            Wire.write(1);
+           g=1;
             Serial.println("hard_brake");
           }
 
           else if (Xbox.getButtonPress(A,  xboxNumber)) {
-            Wire.write(2);
+            g=2;
             Serial.println("soft_brake");
           }
           else if (Xbox.getButtonPress(R1,  xboxNumber)) {
-            Wire.write(3);
+            g=3;
             Serial.println("Clock");
             // fheading = 1;
           }
           else if (Xbox.getButtonPress(L1,  xboxNumber)) {
-            Wire.write(4);
+            g=5;
             Serial.println("Anticlock");
             // fheading = 1;
           }
@@ -82,39 +83,21 @@ void requestEvent()
 
             Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
-            //            int *arr, *motor_speed;
-            //            char *dir ;
-            //            int *theta;
-            //
-            //         //   if (fheading == 1)
-            //            {
-            //              refrenceheading_ = refrenceheading(mx, my);
-            //              Serial.println("refrance taken as");
-            //              Serial.println(refrenceheading_);
-            //              fheading++;
-            //            }
-            //
-            //            lsm_heading = printHeading(mx, my, refrenceheading_);
-            //
-            //            dir = calc_motor_direction(Vector.Direction);
-            //
-            //            double error = errorcal( lsm_heading, Vector.Direction);
-            //            motor_speed = calc_motor_speeds(Vector.Magnitude, Vector.Direction); // done
-            //            set_motor_values(motor_speed, dir);
-            //            debug_serial_output(motor_speed, dir, Vector.Direction , lsm_heading, error );
+                       
           }
-          else
-          {
-            //            soft_brake();
-            Serial.println("soft_brake");
-          }
+        I2C_writeAnything(g);
         }
       }
     }
   }   while (Xbox.Xbox360Connected[xboxNumber]);
   //  soft_brake();
 
-}
+  
+  }
+//void requestEvent()
+//{
+//  Wire.write(g);
+//}
 
 
 int vector_magnitude(uint8_t  xboxNumber)
