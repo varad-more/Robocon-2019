@@ -1,16 +1,17 @@
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Wire.h"
+#include "MegunoLink.h"
+#include "Filter.h"
 
 //MPU6050 accelgyro;
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
+ExponentialFilter<long> ADCFilter(1, 0);
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
-#define OUTPUT_READABLE_ACCELGYRO
-
-
+float angle = 0.0;
 
 //Declaring all the variables
 
@@ -122,11 +123,26 @@ class Leg
       float error2 = 0;
       digitalWrite(8, HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      fb1 = (0.02 * ax) + (0.98 * gx);
+      ADCFilter.Filter(ax);
+      ax = ADCFilter.Current();
+      if (az > 0)
+      {
+        ax = map(ax, 0, -17000, 0, 90);
+      } else {
+        ax = map(ax, -17000, 0, 90, 180);
+      }
       digitalWrite(8, LOW);
+      
       digitalWrite(9, HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      fb2 = (0.02 * ax) + (0.98 * gx);
+      ADCFilter.Filter(ax);
+      ax = ADCFilter.Current();
+      if (az > 0)
+      {
+        ax = map(ax, 0, -17000, 0, 90);
+      } else {
+        ax = map(ax, -17000, 0, 90, 180);
+      }
       digitalWrite(9, LOW);
 
 
@@ -190,7 +206,7 @@ class Leg
     //*************************//
     //back forward and stop functions
 
-    void backward(int l1, int l2)
+    void backward(int l1, int l2)ti
     {
       digitalWrite(l1, HIGH);
       digitalWrite(l2, LOW);
@@ -221,6 +237,10 @@ Leg leg4 = Leg(3);
 
 void setup()
 {
+  Wire.begin();
+  accelgyro.initialize();
+  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
   digitalWrite(8, LOW);
