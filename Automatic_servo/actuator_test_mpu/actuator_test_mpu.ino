@@ -1,17 +1,19 @@
+//Include all libraries
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Wire.h"
 #include "MegunoLink.h"
 #include "Filter.h"
-
-//MPU6050 accelgyro;
+/**********************************************/
+//MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
-ExponentialFilter<long> ADCFilter(1, 0);
 
+ExponentialFilter<long> ADCFilter(1, 0); // <--change values of (1,0) to change filter performance
+//                                                               ^
+/**********************************************/
+//Declare constants for mpu
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
-
-float angle = 0.0;
 
 //Declaring all the variables
 
@@ -23,7 +25,7 @@ float a4 = 39;
 int relay[4][4] = {{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 bool flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-//*****************************************************************************************************************************//
+/*****************************************************************************************************************************/
 //Class for leg
 
 class Leg
@@ -132,7 +134,7 @@ class Leg
         ax = map(ax, -17000, 0, 90, 180);
       }
       digitalWrite(8, LOW);
-      
+
       digitalWrite(9, HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       ADCFilter.Filter(ax);
@@ -206,7 +208,7 @@ class Leg
     //*************************//
     //back forward and stop functions
 
-    void backward(int l1, int l2)ti
+    void backward(int l1, int l2)
     {
       digitalWrite(l1, HIGH);
       digitalWrite(l2, LOW);
@@ -241,6 +243,14 @@ void setup()
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      pinMode(relay[i][j], OUTPUT);
+    }
+  }
+
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
   digitalWrite(8, LOW);
@@ -265,7 +275,6 @@ void setup()
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
 
-  //  Serial.flush();
   digitalWrite(4, HIGH);
   digitalWrite(5, HIGH);
   digitalWrite(6, HIGH);
