@@ -10,6 +10,14 @@ float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 bool flag_leg[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 float mode[4] = {0, 0, 0, 0};
 float state_walk[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+
+///////////////////////
+//constants here
+float points[6][2] = {{0, 0}, {5.5, 0}, {11, 0}, {9, 2.7}, {5.5, 5}, {2, 2.7}};
+int x_bias = 10;
+int y_bias = 50;
+int pointer[4] = {1, 4, 1, 4};
+///////////////////////
 //*****************************************************************************************************************************//
 //Class for leg
 
@@ -206,6 +214,7 @@ Leg leg3 = Leg(3);
 
 class walkGait
 {
+    //Declare constants
     int diff;
     int leg;
     float X;
@@ -216,71 +225,73 @@ class walkGait
       leg = _leg;
     }
     //*************************//
+    //decide path either sine or line
     void givePath()
     {
-      if (mode[leg] == 0)
-      {
-        choose_mode();
-      }
-      if (state_walk[1][leg] == 0)
-      {
-        mode[leg] = 1;
-        choose_mode();
-      }
-      if (state_walk[1][leg] == 0)
-      {
-        mode[leg] = 2;
-        choose_mode();
-      }
+      move_leg(leg);
     }
     //*************************//
     //choose function
 
-    void choose_mode()
+    void move_leg(int leg)
     {
-      if (mode[leg] == 0)
-      {
-        line(1);
-      }
-      else if (mode[leg] == 1)
-      {
-        sine();
-      }
-      else if (mode[leg] == 2)
-      {
-        line(3);
-      }
-    }
-
-    void line(int dist)
-    {
-      state_walk[0][leg] = state_walk[0][leg] - dist;
+      //check if previous point reached
       if (leg == 0)
-        leg0.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg1.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg2.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else
-        leg3.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      Serial.print(state_walk[0][leg]);
-      Serial.println(state_walk[1][leg]);
-    }
-
-    void sine()
-    {
-      state_walk[0][leg] = state_walk[0][leg] + 0.1;
-      state_walk[1][leg] = sin(state_walk[0][leg]);
-      if (leg == 0)
-        leg0.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg1.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else if (leg == 0)
-        leg2.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      else
-        leg3.gotopos(state_walk[0][leg], state_walk[1][leg]);
-      Serial.print(state_walk[0][leg]);
-      Serial.println(state_walk[1][leg]);
+      {
+        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        {
+          leg0.gotopos(points[leg][0], points[leg][1]);
+          //Serial.print("leg 0 points ");
+          //Serial.print(points[pointer[0]][0]);
+          //Serial.print("  ");
+          //Serial.println(points[pointer[0]][1]);
+          pointer[0]++;
+          if (pointer[0] > 5)
+            pointer[0] = 0;
+        }
+      }
+      else if (leg == 1)
+      {
+        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        {
+          leg1.gotopos(points[leg][0], points[leg][1]);
+          //Serial.print("leg 1 points ");
+          //Serial.print(points[pointer[1]][0]);
+          //Serial.print("  ");
+          //Serial.println(points[pointer[1]][1]);
+          pointer[1]++;
+          if (pointer[1] > 5)
+            pointer[1] = 0;
+        }
+      }
+      else if (leg == 2)
+      {
+        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        {
+          leg2.gotopos(points[leg][0], points[leg][1]);
+          //Serial.print("leg 2 points ");
+          //Serial.print(points[pointer[2]][0]);
+          //Serial.print("  ");
+          //Serial.println(points[pointer[2]][1]);
+          pointer[2]++;
+          if (pointer[2] > 5)
+            pointer[2] = 0;
+        }
+      }
+      else if (leg == 3)
+      {
+        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        {
+          leg3.gotopos(points[leg][0], points[leg][1]);
+          //Serial.print("leg 3 points ");
+          //Serial.print(points[pointer[3]][0]);
+          //Serial.print("  ");
+          //Serial.println(points[pointer[3]][1]);
+          pointer[3]++;
+          if (pointer[3] > 5)
+            pointer[3] = 0;
+        }
+      }
     }
 };
 //*****************************************************************************************************************************//
@@ -289,7 +300,6 @@ walkGait path0 = walkGait(0);
 walkGait path1 = walkGait(1);
 walkGait path2 = walkGait(2);
 walkGait path3 = walkGait(3);
-
 
 //Setup function to setup baud rate pinModes
 
@@ -330,10 +340,10 @@ SIGNAL(TIMER0_COMPA_vect)
   leg2.choose_fn();
   leg3.choose_fn();
   //*************************//
-  path0.choose_mode();
-  path1.choose_mode();
-  path2.choose_mode();
-  path3.choose_mode();
+  path0.givePath();
+  path1.givePath();
+  path2.givePath();
+  path3.givePath();
 }
 //*************************//
 //loop function

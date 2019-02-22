@@ -188,7 +188,7 @@ class Leg
         if (flag[0][leg] == 1)
           forward(relay[leg][0], relay[leg][1]);
         if (flag[1][leg] == 1)
-          backward(relay[leg][2], relay[leg][3]);
+          backward(relay[leg][2],  relay[leg][3]);
       }
       else if (fb1 > T[0][leg] && fb2 < T[1][leg])
       {
