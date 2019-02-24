@@ -22,7 +22,7 @@ float a1 = 0;
 float a2 = 39;
 float a3 = 0;
 float a4 = 39;
-int relay[4][4] = {{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
+int relay[4][4] = {{4, 5, 6, 7}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};//{{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 bool flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 /*****************************************************************************************************************************/
@@ -62,12 +62,18 @@ class Leg
           calculate_neg_angle(X, Y);
         }
       }
-      else
+      else if (X > 0)
       {
         if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
           calculate_pos_angle(X, Y);
         }
+      }
+      else
+      {
+        Serial.print("X ");
+        Serial.print(X);
+        Serial.println("  gotopos not set");
       }
     }
 
@@ -133,6 +139,9 @@ class Leg
       } else {
         ax = map(ax, -17000, 0, 90, 180);
       }
+      fb1 = ax;
+      Serial.print("Leg1");
+      Serial.println(ax);
       digitalWrite(8, LOW);
 
       digitalWrite(9, HIGH);
@@ -145,6 +154,9 @@ class Leg
       } else {
         ax = map(ax, -17000, 0, 90, 180);
       }
+      fb2 = ax;
+      Serial.print("Leg2");
+      Serial.println(ax);
       digitalWrite(9, LOW);
 
 
@@ -239,22 +251,23 @@ Leg leg4 = Leg(3);
 
 void setup()
 {
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  digitalWrite(8, HIGH);
+  digitalWrite(9, LOW);
+
   Wire.begin();
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
-  for (int i = 0; i < 4; i++)
-  {
-    for (int j = 0; j < 4; j++)
-    {
-      pinMode(relay[i][j], OUTPUT);
-    }
-  }
+  //  for (int i = 0; i < 4; i++)
+  //  {
+  //    for (int j = 0; j < 4; j++)
+  //    {
+  //      pinMode(relay[i][j], OUTPUT);
+  //    }
+  //  }
 
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-  digitalWrite(8, LOW);
-  digitalWrite(9, LOW);
   Serial.begin(115200);
 
   // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -292,7 +305,8 @@ void setup()
   OCR0A = 0xAF;
   TIMSK0 |= _BV(OCIE0A);
   interrupts();
-  leg1.gotopos(-20, 60);
+  Serial.println("Set points");
+
   //  leg2.gotopos(-20, 60);
   //  leg3.gotopos(-20, 60);
   //  leg4.gotopos(-20, 60);
@@ -303,20 +317,20 @@ void setup()
 
 SIGNAL(TIMER0_COMPA_vect)
 {
-  if (digitalRead(2) == HIGH)
-  {
-    Serial.println("In ISR");
-    leg1.choose_fn();
-    leg2.choose_fn();
-    leg3.choose_fn();
-    leg4.choose_fn();
-  }
+  //  if (digitalRead(2) == HIGH)
+  //  {
+  Serial.println("In ISR");
+  leg1.choose_fn();
+  leg2.choose_fn();
+  leg3.choose_fn();
+  leg4.choose_fn();
+  //  }
 }
 //*************************//
 //loop function
 
 void loop()
 {
-
+  leg1.gotopos(-20, 60);
 }
 //*************************//

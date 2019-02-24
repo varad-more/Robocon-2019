@@ -1,15 +1,16 @@
 //Declaring all the variables
 
 float pi = 3.14159;
-float a1 = 0;
+float a1 = 0; //Link lengths on actual bot in cm
 float a2 = 39;
 float a3 = 0;
 float a4 = 39;
-int relay[4][4] = {{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
-float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-bool flag_leg[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-float mode[4] = {0, 0, 0, 0};
-float state_walk[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+
+int relay[4][4] = {{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}}; //Relay pins on mega
+float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};                                            //theta
+bool flag_leg[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};                                      //flag for leg reached or not
+float mode[4] = {0, 0, 0, 0};                                                               //mode(optional)
+float state_walk[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};                                   //state (optional)
 
 ///////////////////////
 //constants here
@@ -238,13 +239,13 @@ class walkGait
       //check if previous point reached
       if (leg == 0)
       {
-        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        if (flag_leg[leg][0] == 0 && flag_leg[leg][1] == 0)
         {
           leg0.gotopos(points[leg][0], points[leg][1]);
-          //Serial.print("leg 0 points ");
-          //Serial.print(points[pointer[0]][0]);
-          //Serial.print("  ");
-          //Serial.println(points[pointer[0]][1]);
+          Serial.print("leg 0 points ");
+          Serial.print(points[pointer[0]][0]);
+          Serial.print("  ");
+          Serial.println(points[pointer[0]][1]);
           pointer[0]++;
           if (pointer[0] > 5)
             pointer[0] = 0;
@@ -252,13 +253,13 @@ class walkGait
       }
       else if (leg == 1)
       {
-        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        if (flag_leg[leg][0] == 0 && flag_leg[leg][1] == 0)
         {
           leg1.gotopos(points[leg][0], points[leg][1]);
-          //Serial.print("leg 1 points ");
-          //Serial.print(points[pointer[1]][0]);
-          //Serial.print("  ");
-          //Serial.println(points[pointer[1]][1]);
+          Serial.print("leg 1 points ");
+          Serial.print(points[pointer[1]][0]);
+          Serial.print("  ");
+          Serial.println(points[pointer[1]][1]);
           pointer[1]++;
           if (pointer[1] > 5)
             pointer[1] = 0;
@@ -266,13 +267,13 @@ class walkGait
       }
       else if (leg == 2)
       {
-        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        if (flag_leg[leg][0] == 0 && flag_leg[leg][1] == 0)
         {
           leg2.gotopos(points[leg][0], points[leg][1]);
-          //Serial.print("leg 2 points ");
-          //Serial.print(points[pointer[2]][0]);
-          //Serial.print("  ");
-          //Serial.println(points[pointer[2]][1]);
+          Serial.print("leg 2 points ");
+          Serial.print(points[pointer[2]][0]);
+          Serial.print("  ");
+          Serial.println(points[pointer[2]][1]);
           pointer[2]++;
           if (pointer[2] > 5)
             pointer[2] = 0;
@@ -280,13 +281,13 @@ class walkGait
       }
       else if (leg == 3)
       {
-        if (flag_leg[leg][0] == 1 && flag_leg[leg][1] == 1)
+        if (flag_leg[leg][0] == 0 && flag_leg[leg][1] == 0)
         {
           leg3.gotopos(points[leg][0], points[leg][1]);
-          //Serial.print("leg 3 points ");
-          //Serial.print(points[pointer[3]][0]);
-          //Serial.print("  ");
-          //Serial.println(points[pointer[3]][1]);
+          Serial.print("leg 3 points ");
+          Serial.print(points[pointer[3]][0]);
+          Serial.print("  ");
+          Serial.println(points[pointer[3]][1]);
           pointer[3]++;
           if (pointer[3] > 5)
             pointer[3] = 0;
@@ -305,25 +306,29 @@ walkGait path3 = walkGait(3);
 
 void setup()
 {
-  int Time = millis();
+  //int Time = millis();
 
   Serial.begin(115200);
+
+  Serial.println("Setup");
 
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
 
-  digitalWrite(4, HIGH);
-  digitalWrite(5, HIGH);
-  digitalWrite(6, HIGH);
-  digitalWrite(7, HIGH);
-  delay(1000);
+
   digitalWrite(4, LOW);
   digitalWrite(5, LOW);
   digitalWrite(6, LOW);
   digitalWrite(7, LOW);
   delay(1000);
+  digitalWrite(4, HIGH);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, HIGH);
+  digitalWrite(7, HIGH);
+  delay(1000);
+
 
   noInterrupts();
   OCR0A = 0xAF;
@@ -335,15 +340,16 @@ void setup()
 
 SIGNAL(TIMER0_COMPA_vect)
 {
-  leg0.choose_fn();
-  leg1.choose_fn();
-  leg2.choose_fn();
-  leg3.choose_fn();
-  //*************************//
+  Serial.println("ISR");
   path0.givePath();
   path1.givePath();
   path2.givePath();
   path3.givePath();
+  //*************************//
+  leg0.choose_fn();
+  leg1.choose_fn();
+  leg2.choose_fn();
+  leg3.choose_fn();
 }
 //*************************//
 //loop function
