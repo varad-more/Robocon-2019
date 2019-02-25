@@ -177,12 +177,12 @@ class Leg
       error2 = T[1][leg] - fb2;
 
       //Control statements for feedback based motion
-      if (abs(error1) < 2)
+      if (abs(error1) < 4)
       {
         hardstop(relay[leg][0], relay[leg][1]);
         flag[0][leg] = 0;
       }
-      if (abs(error2) < 2)
+      if (abs(error2) < 4)
       {
         hardstop(relay[leg][2], relay[leg][3]);
         flag[1][leg] = 0;
