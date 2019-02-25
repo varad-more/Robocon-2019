@@ -9,7 +9,8 @@ volatile int a = 0;
 //MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
 
-ExponentialFilter<long> ADCFilter(1, 0); // <--change values of (1,0) to change filter performance
+ExponentialFilter<long> ADCFilter1(1, 0); // <--change values of (1,0) to change filter performance
+ExponentialFilter<long> ADCFilter2(1, 0);
 //                                                               ^
 /**********************************************/
 //Declare constants for mpu
@@ -51,7 +52,7 @@ class Leg
       Y = _Y;
       flag[0][leg] = 1;
       flag[1][leg] = 1;
-      Serial.print(X, Y);
+     // Serial.print(X, Y);
     }
     void chosen_fun()
     {
@@ -93,7 +94,7 @@ class Leg
       else
       {
         Serial.print("X ");
-        Serial.print(X);
+        //Serial.print(X);
         Serial.println("  gotopos not set");
       }
     }
@@ -150,14 +151,14 @@ class Leg
       float fb2 = 0;
       float error1 = 0;
       float error2 = 0;
-      digitalWrite(8, HIGH);
+      digitalWrite(10, HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      ADCFilter.Filter(ax);
-      ax = ADCFilter.Current();
+      ADCFilter1.Filter(ax);
+      ax = ADCFilter1.Current();
       if (az > 0)
       {
         if (ax < 0)
-          ax = map(ax, 0, -15000, 0, 90);
+          ax = map(ax, 0, -15000, 5, 99); // 5 -99
         else
           ax = map(ax, 0, 15000, 270, 359);
       }
@@ -168,18 +169,19 @@ class Leg
           ax = map(ax, 0, 15000, 180, 270);
       }
       fb1 = ax;
-      Serial.print("Leg1");
+      Serial.println("Leg1");
       Serial.println(ax);
-      digitalWrite(8, LOW);
+      Serial.println(az);
+      digitalWrite(10, LOW);
 
       digitalWrite(9, HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-      ADCFilter.Filter(ax);
-      ax = ADCFilter.Current();
+      ADCFilter2.Filter(ax);
+      ax = ADCFilter2.Current();
       if (az > 0)
       {
         if (ax < 0)
-          ax = map(ax, 0, -15000, 0, 90);
+          ax = map(ax, 0, -15000, 5, 99);
         else
           ax = map(ax, 0, 15000, 270, 359);
       }
@@ -190,22 +192,23 @@ class Leg
           ax = map(ax, 0, 15000, 180, 270);
       }
       fb2 = ax;
-      Serial.print("Leg2");
+      Serial.println("Leg2");
       Serial.println(ax);
+      Serial.println(az);
       digitalWrite(9, LOW);
 
 
       //Print statements for debugging
-      Serial.print(leg);
-      Serial.print("  ");
-      Serial.print("  fb1  ");
-      Serial.print(fb1);
-      Serial.print("  T[0][leg]  ");
-      Serial.print(T[0][leg]);
-      Serial.print("  fb2  ");
-      Serial.print(fb2);
-      Serial.print("  T[1][leg]  ");
-      Serial.println(T[1][leg]);
+//      Serial.print(leg);
+//      Serial.print("  ");
+//      Serial.print("  fb1  ");
+//      Serial.print(fb1);
+//      Serial.print("  T[0][leg]  ");
+//      Serial.print(T[0][leg]);
+//      Serial.print("  fb2  ");
+//      Serial.print(fb2);
+//      Serial.print("  T[1][leg]  ");
+//      Serial.println(T[1][leg]);
 
       //Find error
       error1 = T[0][leg] - fb1;
@@ -286,9 +289,9 @@ Leg leg4 = Leg(3);
 
 void setup()
 {
-  pinMode(8, OUTPUT);
+  pinMode(10, OUTPUT);
   pinMode(9, OUTPUT);
-  digitalWrite(8, HIGH);
+  digitalWrite(10, HIGH);
   digitalWrite(9, LOW);
 
   Wire.begin();
@@ -388,7 +391,7 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 void loop()
 {
   //Serial.print("hello");
-  Serial.println(a);
+  //Serial.println(a);
   leg1.chosen_fun();
   //*************************//
 }
