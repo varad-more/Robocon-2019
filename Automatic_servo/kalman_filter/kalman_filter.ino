@@ -8,12 +8,14 @@ volatile int a = 0;
 /**********************************************/
 //MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
-int e_mea=1;
+int e_mea = 1;
 float angle;
-int e_est=1;
-int q= 1;
+int e_est = 1;
+int q = 1;
 SimpleKalmanFilter kfx = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfy = SimpleKalmanFilter(e_mea, e_est, q);
+SimpleKalmanFilter kfx1 = SimpleKalmanFilter(e_mea, e_est, q);
+SimpleKalmanFilter kfy1 = SimpleKalmanFilter(e_mea, e_est, q);
 //e_mea: Measurement Uncertainty - How much do we expect to our measurement vary
 //e_est: Estimation Uncertainty - Can be initilized with the same value as e_mea since the kalman filter will adjust its value.
 //q: Process Variance - usually a small number between 0.001 and 1 - how fast your measurement moves. Recommended 0.01. Should be tunned to your needs.
@@ -53,23 +55,26 @@ class Leg
 
     void gotopos(float _X, float _Y)
     {
-     // Serial.println("In gotopos");
+      // Serial.println("In gotopos");
       X = _X;
       Y = _Y;
       flag[0][leg] = 1;
       flag[1][leg] = 1;
-     // Serial.print(X, Y);
+      Serial.print(X, Y);
     }
     void chosen_fun()
     {
       if  (neg_flag[leg] == 1)
       {
         calculate_neg_angle(X, Y);
+        Serial.println("neg");
+        
       }
 
       if  (pos_flag[leg] == 1)
       {
         calculate_pos_angle(X, Y);
+        Serial.println("pos");
       }
     }
 
@@ -79,7 +84,7 @@ class Leg
 
     void choose_fn()
     {
-    //  Serial.println("In choose_fn");
+      //  Serial.println("In choose_fn");
       //Serial.print(X,Y);
       if (X < 0)
       {
@@ -89,7 +94,7 @@ class Leg
           neg_flag[leg] = 1;
         }
       }
-      else if (X > 0)
+      else if (X >= 0)
       {
         if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
@@ -99,7 +104,7 @@ class Leg
       }
       else
       {
-       // Serial.print("X ");
+        // Serial.print("X ");
         //Serial.print(X);
         //Serial.println("  gotopos not set");
       }
@@ -110,7 +115,7 @@ class Leg
 
     void calculate_pos_angle(float X, float Y)
     {
-    //  Serial.println("In calcpos");
+      //  Serial.println("In calcpos");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -157,80 +162,79 @@ class Leg
       float fb2 = 0;
       float error1 = 0;
       float error2 = 0;
-      digitalWrite(10, HIGH);
+      digitalWrite(9, HIGH);
+      digitalWrite(10,LOW);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-     
+
       ax = kfx.updateEstimate(ax);
       az = kfy.updateEstimate(az);
-      
-//      if (az > 0)
-//      {
-//        if (ax < 0)
-//          ax = map(ax, 0, -15000, 5, 99); // 5 -99
-//        else
-//          ax = map(ax, 0, 15000, 270, 359);
-//      }
-//      else {
-//        if (ax < 0)
-//          ax = map(ax, 0, -15000, 180, 90);
-//        else
-//          ax = map(ax, 0, 15000, 180, 270);
-//      }
-//      fb1 = ax;
-     Serial.print("Leg1           ax=");
-     Serial.print(ax);
-     Serial.print(" ");
-     angle=180*atan2(ax,az)/PI; 
-     //ax=map(ax,-4200,-15600,11.5,96.5);
-     angle=angle+3;
-      Serial.println(angle);
-      
-      
-    
+
+      Serial.print("Leg1   ax=");
+      Serial.print(ax);
+      Serial.print(" ");
+      angle = 180 * atan2(ax, az) / PI;
+      //ax=map(ax,-4200,-15600,11.5,96.5);
+      angle = angle + 3;
+      fb1=abs(angle);
+      Serial.print(fb1);
       //Serial.print("                az=");
       //Serial.print(az);
-      digitalWrite(10, LOW);
-
-      digitalWrite(9, HIGH);
-      accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-//      ax = kf1.updateEstimate(ax);
-////      ax = ADCFilter2.Current();
-//      if (az > 0)
-//      {
-//        if (ax < 0)
-//          ax = map(ax, 0, -15000, 5, 99);
-//        else
-//          ax = map(ax, 0, 15000, 270, 359);
-//      }
-//      else {
-//        if (ax < 0)
-//          ax = map(ax, 0, -15000, 180, 90);
-//        else
-//          ax = map(ax, 0, 15000, 180, 270);
-//      }
-//      fb2 = ax;
-////      Serial.println("Leg2");
-//      //Serial.println(ax);
-////      Serial.println(az);
       digitalWrite(9, LOW);
+
+      digitalWrite(10, HIGH);
+      accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+      ax = kfx1.updateEstimate(ax);
+      az = kfy1.updateEstimate(az);
+      Serial.print("Leg2   ax=");
+      Serial.print(ax);
+      Serial.print(" ");
+      angle = 180 * atan2(ax, az) / PI;
+      //ax=map(ax,-4200,-15600,11.5,96.5);
+      angle = abs(angle + 10);
+      fb2=angle-fb1;
+      Serial.print(angle);
+      Serial.print(" ");
+      Serial.println(fb2);
+      //      ax = ADCFilter2.Current();
+      //      if (az > 0)
+      //      {
+      //        if (ax < 0)
+      //          ax = map(ax, 0, -15000, 5, 99);
+      //        else
+      //          ax = map(ax, 0, 15000, 270, 359);
+      //      }
+      //      else {
+      //        if (ax < 0)
+      //          ax = map(ax, 0, -15000, 180, 90);
+      //        else
+      //          ax = map(ax, 0, 15000, 180, 270);
+      //      }
+      //      fb2 = ax;
+      //      Serial.println("Leg2");
+      //Serial.println(ax);
+      //      Serial.println(az);
+      digitalWrite(10, LOW);
 
 
       //Print statements for debugging
-//      Serial.print(leg);
-////      Serial.print("  ");
-////      Serial.print("  fb1  ");
-////      Serial.print(fb1);
-////      Serial.print("  T[0][leg]  ");
-////      Serial.print(T[0][leg]);
-////      Serial.print("  fb2  ");
-////      Serial.print(fb2);
-////      Serial.print("  T[1][leg]  ");
-////      Serial.println(T[1][leg]);
-//
-//      //Find error
+      //      Serial.print(leg);
+      //      Serial.print("  ");
+      //      Serial.print("  fb1  ");
+      //      Serial.print(fb1);
+      //      Serial.print("  T[0][leg]  ");
+      //      Serial.print(T[0][leg]);
+      //      Serial.print("  fb2  ");
+      //      Serial.print(fb2);
+      //      Serial.print("  T[1][leg]  ");
+      //      Serial.println(T[1][leg]);
+      //
+      //      //Find error
       error1 = T[0][leg] - fb1;
       error2 = T[1][leg] - fb2;
-
+         Serial.print(T[0][leg]);
+      Serial.print(" ");
+      Serial.println(T[1][leg]);
       //Control statements for feedback based motion
       if (abs(error1) < 2)
       {
@@ -307,14 +311,16 @@ Leg leg4 = Leg(3);
 void setup()
 {
   pinMode(10, OUTPUT);
-  pinMode(9, OUTPUT);
-  digitalWrite(10, HIGH);
-  digitalWrite(9, LOW);
+  pinMode(9, OUTPUT); 
+  digitalWrite(9, HIGH);
+  digitalWrite(10, LOW);
 
   Wire.begin();
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-
+//   digitalWrite(10, HIGH);
+//  digitalWrite(9, LOW);
+//  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   //  for (int i = 0; i < 4; i++)
   //  {
   //    for (int j = 0; j < 4; j++)
@@ -377,7 +383,7 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-  leg1.gotopos(-20, 60);
+  leg1.gotopos(15, 6);
   //  leg2.gotopos(-20, 60);
   //  leg3.gotopos(-20, 60);
   //  leg4.gotopos(-20, 60);
@@ -394,7 +400,7 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   OCR1A = 2000;
   //Serial.println("In ISR");
   leg1.choose_fn();
-//  a++;
+  //  a++;
   sei();
   //  leg2.choose_fn();
   //  leg3.choose_fn();
@@ -407,8 +413,9 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
 void loop()
 {
-  //Serial.print("hello");
+  Serial.println("hello");
   //Serial.println(a);
   leg1.chosen_fun();
+  
   //*************************//
 }

@@ -7,13 +7,14 @@
 /**********************************************/
 //MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
+volatile int go_point=0;
 
 //                                                               ^
 /**********************************************/
 //Declare constants for mpu
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
-float points[7][2] = {{0, 0}, {14.3 , 6.6}, {10.5,14.7}, {20,20}, {30.5, 14.7}, {24.3, 6.6},{40,0}};
+float points[7][2] = {{0, 0}, {14.3 , 6.6}, {10.5, 14.7}, {20, 20}, {30.5, 14.7}, {24.3, 6.6}, {40, 0}};
 int x_bias = 10;
 int y_bias = 50;
 int pointer[4] = {1, 4, 1, 4};
@@ -32,7 +33,7 @@ float a1 = 0;
 float a2 = 39;
 float a3 = 0;
 float a4 = 39;
-int relay[4][4] = {{4, 5, 6, 7}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};//{{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
+int relay[4][4] = {{4, 5, 6, 7}, {31, 33, 35, 37}, {39, 41, 43, 45},{47, 49, 51, 53}};//{{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 bool flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 /*****************************************************************************************************************************/
@@ -173,6 +174,7 @@ class Leg
       //Find error
       error1 = T[0][leg] - fb1;
       error2 = T[1][leg] - fb2;
+   
 
       //Control statements for feedback based motion
       if (abs(error1) < 2)
@@ -279,7 +281,17 @@ class walkGait : public Leg
     }
     //*************************//
     //choose function
-
+    void chosen_point()
+    {
+      Serial.print("leg 0 points ");
+      Serial.print(points[pointer[0]][0]);
+      Serial.print("  ");
+      Serial.println(points[pointer[0]][1]);
+      leg1.gotopos(points[pointer[0]][0], points[pointer[0]][1]);
+      pointer[0]++;
+      if (pointer[0] > 5)
+        pointer[0] = 0;
+    }
     void move_leg(int leg)
     {
       //check if previous point reached
@@ -288,15 +300,9 @@ class walkGait : public Leg
         if (flag[leg][0] == 1 && flag[leg][1] == 1)
         {
           //leg0.gotopos(points[leg][0], points[leg][1]);
-          Serial.print("leg 0 points ");
-          Serial.print(points[pointer[0]][0]);
-          Serial.print("  ");
-          Serial.println(points[pointer[0]][1]);
-          leg1.gotopos(points[pointer[0]][0], points[pointer[0]][1]);
-          pointer[0]++;
-          if (pointer[0] > 5)
-            pointer[0] = 0;
+          go_point = 1;
         }
+        else go_point = 0;
       }
       else if (leg == 1)
       {
@@ -344,9 +350,9 @@ class walkGait : public Leg
 };
 
 walkGait path0 = walkGait(0);
-walkGait path1 = walkGait(1);
-walkGait path2 = walkGait(2);
-walkGait path3 = walkGait(3);
+//walkGait path1 = walkGait(1);
+//walkGait path2 = walkGait(2);
+//walkGait path3 = walkGait(3);
 
 
 
@@ -354,8 +360,8 @@ walkGait path3 = walkGait(3);
 
 void setup()
 {
- pinMode(10, OUTPUT);
- pinMode(9, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(9, OUTPUT);
   digitalWrite(10, HIGH);
   digitalWrite(9, LOW);
 
@@ -386,7 +392,7 @@ void setup()
 
 
 
- pinMode(4, OUTPUT);
+  pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
@@ -404,9 +410,22 @@ void setup()
 
   Serial.println("start");
 
-  noInterrupts();
-  OCR0A = 0xAF;
-  TIMSK0 |= _BV(OCIE0A);
+  noInterrupts();           // disable all interrupts
+
+  TCCR1A = 0 ;
+
+  TCCR1B = 0;
+
+  TCNT1  = 0;
+
+  OCR1A = 2000;            // compare match register 16MHz/256/2Hz
+
+  TCCR1B |= (1 << WGM12);   // CTC mode
+
+  TCCR1B |= (1 << CS12);    // 256 prescaler
+
+  TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
+  //  Serial.print("noint");
   interrupts();
   Serial.println("Set points");
 
@@ -419,23 +438,32 @@ void setup()
 //ISR
 
 
-SIGNAL(TIMER0_COMPA_vect)
+SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 {
+
   //  if (digitalRead(2) == HIGH)
   //  {
   //  Serial.println("In ISR");
-  leg1.choose_fn();
-  leg2.choose_fn();
-  leg3.choose_fn();
-  leg4.choose_fn();
+  cli();
+  OCR1A = 2000;
+  //Serial.println("In ISR");
+  //leg1.choose_fn();
   path0.givePath();
+  sei();
+
   //  }
 }
 //*************************//
 //loop function
+leg1.gotopos(points[pointer[0]][0], points[pointer[0]][1]);
 
 void loop()
 {
   //leg1.gotopos(-20, 60);
+  if (go_point == 1)
+  {
+    path0.chosen_point();
+  }
+
 }
 //*************************//
