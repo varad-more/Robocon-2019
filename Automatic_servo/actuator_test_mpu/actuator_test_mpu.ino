@@ -7,7 +7,7 @@
 /**********************************************/
 //MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
-volatile int go_point=0;
+volatile int go_point=1;
 
 //                                                               ^
 /**********************************************/
@@ -60,6 +60,7 @@ class Leg
       Y = _Y;
       flag[0][leg] = 1;
       flag[1][leg] = 1;
+      Serial.print("gotopos");
     }
     //*************************//
     //choose function
@@ -67,7 +68,7 @@ class Leg
     void choose_fn()
     {
       //      Serial.println("In choose_fn");
-      if (X < 0)
+      if (X <= 0)
       {
         if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
@@ -143,6 +144,7 @@ class Leg
       float error1 = 0;
       float error2 = 0;
       digitalWrite(10, HIGH);
+      
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       angle = find_angle(ax, ay, 0);
@@ -362,7 +364,7 @@ void setup()
 {
   pinMode(10, OUTPUT);
   pinMode(9, OUTPUT);
-  digitalWrite(10, HIGH);
+  digitalWrite(10,LOW);
   digitalWrite(9, LOW);
 
   Wire.begin();
@@ -432,6 +434,7 @@ void setup()
   //  leg2.gotopos(-20, 60);
   //  leg3.gotopos(-20, 60);
   //  leg4.gotopos(-20, 60);
+  leg1.gotopos(points[pointer[0]][0], points[pointer[0]][1]);
 
 }
 //*************************//
@@ -455,7 +458,7 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 }
 //*************************//
 //loop function
-leg1.gotopos(points[pointer[0]][0], points[pointer[0]][1]);
+
 
 void loop()
 {

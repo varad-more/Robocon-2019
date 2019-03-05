@@ -3,22 +3,16 @@
 #include "MPU6050.h"
 #include "Wire.h"
 #include "MegunoLink.h"
-#include "SimpleKalmanFilter.h"
+#include "Kalman.h"
 volatile int a = 0;
+float dt;
+unsigned long int timer1,timer2;
 /**********************************************/
 //MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
-int e_mea = 1;
+Kalman k1;
+Kalman k2;
 float angle;
-int e_est = 1;
-int q = 0.001;
-SimpleKalmanFilter kfx = SimpleKalmanFilter(e_mea, e_est, q);
-SimpleKalmanFilter kfy = SimpleKalmanFilter(e_mea, e_est, q);
-SimpleKalmanFilter kfx1 = SimpleKalmanFilter(e_mea, e_est, q);
-SimpleKalmanFilter kfy1 = SimpleKalmanFilter(e_mea, e_est, q);
-//e_mea: Measurement Uncertainty - How much do we expect to our measurement vary
-//e_est: Estimation Uncertainty - Can be initilized with the same value as e_mea since the kalman filter will adjust its value.
-//q: Process Variance - usually a small number between 0.001 and 1 - how fast your measurement moves. Recommended 0.01. Should be tunned to your needs.
 //                                                               ^
 /**********************************************/
 //Declare constants for mpu
@@ -68,7 +62,7 @@ class Leg
       {
         calculate_neg_angle(X, Y);
         Serial.println("neg");
-        
+
       }
 
       if  (pos_flag[leg] == 1)
@@ -162,42 +156,54 @@ class Leg
       float fb2 = 0;
       float error1 = 0;
       float error2 = 0;
+      static float angle1, angle2, preangle1 = 0, preangle2 = 0;
       digitalWrite(9, HIGH);
-      digitalWrite(10,LOW);
+      digitalWrite(10, LOW);
       delay(2);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-      ax = kfx.updateEstimate(ax);
-      az = kfy.updateEstimate(az);
 
-      Serial.print("Leg1   ax=");
-      Serial.print(ax);
+
+      Serial.print("Leg1   angle=");
+//      Serial.print(ax);
       Serial.print(" ");
-      angle = 180 * atan2(ax, az) / PI;
+      angle1 = abs(180 * atan2(ax, az) / PI);
+      dt = (double)(micros() - timer1) / 1000000;
+      angle1 = k1.getAngle(angle1, (angle1 - preangle1) / dt, dt) ;
+      preangle1 = angle1;
       //ax=map(ax,-4200,-15600,11.5,96.5);
-      angle = angle + 3;
-      fb1=abs(angle);
+      angle1 = angle1 - 3;
+      fb1 = angle1;
       Serial.print(fb1);
       //Serial.print("                az=");
-      //Serial.print(az);
+      Serial.print(" ");
+      Serial.print(T[0][leg]);
       digitalWrite(9, LOW);
 
       digitalWrite(10, HIGH);
       delay(2);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-      ax = kfx1.updateEstimate(ax);
-      az = kfy1.updateEstimate(az);
-      Serial.print("Leg2   ax=");
-      Serial.print(ax);
+      Serial.print("Leg2   angle=");
+     // Serial.print(ax);
       Serial.print(" ");
-      angle = 180 * atan2(ax, az) / PI;
+
+      angle2 = abs(180 * atan2(ax, az) / PI);
+      dt = (double)(micros() - timer2) / 1000000;
+      angle2 = k2.getAngle(angle2, (angle2 - preangle2) / dt, dt) ;
+      preangle2 = angle2;
       //ax=map(ax,-4200,-15600,11.5,96.5);
-      fb2 = abs(angle + 10);
+      angle2 = angle2 - 10;
+      fb1 = angle1;
+      preangle2 = angle2;
+      //ax=map(ax,-4200,-15600,11.5,96.5);
+      fb2 = angle2;
       //fb2=angle-fb1;
-      Serial.print(angle);
+//      Serial.print(angle2);
       Serial.print(" ");
-      Serial.println(fb2);
+      Serial.print(fb2);
+        Serial.print(" ");
+      Serial.println(T[1][leg]);
       //      ax = ADCFilter2.Current();
       //      if (az > 0)
       //      {
@@ -234,9 +240,9 @@ class Leg
       //      //Find error
       error1 = T[0][leg] - fb1;
       error2 = T[1][leg] - fb2;
-         Serial.print(T[0][leg]);
-      Serial.print(" ");
-      Serial.println(T[1][leg]);
+//      Serial.print(T[0][leg]);
+//      Serial.print(" ");
+//      Serial.println(T[1][leg]);
       //Control statements for feedback based motion
       if (abs(error1) < 2)
       {
@@ -315,16 +321,32 @@ Leg leg4 = Leg(3);
 void setup()
 {
   pinMode(10, OUTPUT);
-  pinMode(9, OUTPUT); 
+  pinMode(9, OUTPUT);
   digitalWrite(10, LOW);
   digitalWrite(9, HIGH);
-  
+  Serial.begin(115200);
+
   Wire.begin();
   accelgyro.initialize();
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-//   digitalWrite(10, HIGH);
-//  digitalWrite(9, LOW);
-//  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful LEG 1" : "MPU6050 connection failed LEG 1");
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  k1.setAngle(abs(180 * atan2(ax, az) / PI));
+  timer1 = micros();
+  digitalWrite(10, HIGH);
+  digitalWrite(9, LOW);
+
+  accelgyro.initialize();
+
+  // verify connection
+  Serial.println("Testing device connections...");
+  Serial.println(accelgyro.testConnection() ? "MPU6050  connection successful LEG 2" : "MPU6050  connection failed LEG 2");
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  k2.setAngle(abs(180 * atan2(ax, az) / PI));
+  timer2 = micros();
+
+  //   digitalWrite(10, HIGH);
+  //  digitalWrite(9, LOW);
+  //  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   //  for (int i = 0; i < 4; i++)
   //  {
   //    for (int j = 0; j < 4; j++)
@@ -333,18 +355,14 @@ void setup()
   //    }
   //  }
 
-  Serial.begin(115200);
+
 
   // join I2C bus (I2Cdev library doesn't do this automatically)
   //Wire.begin();
 
   // initialize device
   Serial.println("Initializing I2C devices...");
-  accelgyro.initialize();
 
-  // verify connection
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
 
 
@@ -420,6 +438,6 @@ void loop()
   Serial.println("hello");
   //Serial.println(a);
   leg1.chosen_fun();
-  
+
   //*************************//
 }
