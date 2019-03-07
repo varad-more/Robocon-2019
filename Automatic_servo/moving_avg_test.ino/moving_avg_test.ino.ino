@@ -31,12 +31,14 @@ float a1 = 0;
 float a2 = 39;
 float a3 = 0;
 float a4 = 39;
+volatile int  no_pointer = 12 ;
 int relay[4][4] = {{4, 5 , 6, 7}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};//{{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int neg_flag[4] = {0, 0, 0, 0};
 volatile int pos_flag[4] = {0, 0, 0, 0};
-volatile float points[7][2] = {{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 17.23, 50.15}, { 18.33, 59.15}};
+//volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
+volatile float points[12][2] = { { -20, 54.15}, { 0, 54.15}, { 20, 54.15}, { 0, 54.15}, { -20, 54.15}, { 0, 54.15}, { 20, 54.15}, { 0, 54.15}, { -20, 54.15}, { 0, 54.15},{20, 54.15},{ 0, 54.15} };
 volatile int pointer = 0;
 /*****************************************************************************************************************************/
 //Class for leg
@@ -70,6 +72,7 @@ class Leg
       if  (neg_flag[leg] == 1)
       {
         calculate_neg_angle(X, Y);
+        neg_flag[leg]=0;
         //        Serial.println("neg");
 
       }
@@ -77,6 +80,7 @@ class Leg
       if  (pos_flag[leg] == 1)
       {
         calculate_pos_angle(X, Y);
+        pos_flag[leg]=0;
         //        Serial.println("pos");
       }
     }
@@ -133,14 +137,16 @@ class Leg
       //      T[0][leg] = T[0][leg] * 180 / pi;
       //      T[1][leg] = T[1][leg] * 180 / pi;
       r1 = sqrt(X * X + Y * Y);
-      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / pi;
-      phi2 = (atan(Y / X)) * 180 / pi;
-      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / pi;
+      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
+      phi2 = (atan(Y / X)) * 180 / PI;
+      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
       T[0][leg] = phi1 + phi2;
       T[1][leg] = phi3 + T[0][leg] - 180;
+      T[0][leg] = 180 - T[0][leg] ;
+      T[1][leg] = 180 - T[1][leg] ;
       //steve changes
-      T[0][leg] = 180 - T[0][leg];
-      T[1][leg] = 180 - T[1][leg];
+      //      T[0][leg] = 180 - T[0][leg];
+      //      T[1][leg] = 180 - T[1][leg];
 
       //      T[0][leg] = T[0][leg] - 90;
       /*********************/
@@ -162,18 +168,27 @@ class Leg
       float phi1 = 0;
       float phi2 = 0;
       float phi3 = 0;
-      X = abs(X);
+
+      //      r1 = sqrt(X * X + Y * Y);
+      //      phi1 = (acos(((a4 * a4) + (a2 * a2) - (r1 * r1)) / (2.0 * a2 * r1)))*180./PI;
+      //      phi2 = (atan(-Y / X))*180./pi;
+      //      phi3 = (acos(((r1 * r1) + (a2 * a2) - (a4 * a4)) / (2.0 * a2 * a4)))*180./PI;
+      //
+      //      T[0][leg] = phi1+phi2;
+      //      T[1][leg] = phi3+T[0][leg]-180;
+      //      //steve
+
       r1 = sqrt(X * X + Y * Y);
-      phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
-      phi2 = atan(-Y / X);
-      phi2 = pi + phi2;
-      T[0][leg] = phi2 - phi1;
-      phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-      T[1][leg] = pi - phi3;
-      T[0][leg] = T[0][leg] * 180 / pi;
-      T[1][leg] = T[1][leg] * 180 / pi;
-
-
+      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
+      phi2 = (atan(-Y / X)) * 180 / PI; // Here X is negetive so, in k2 it is multipled by negetive sign.
+      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
+      T[0][leg] = phi1 + phi2;
+      T[1][leg] = phi3 + T[0][leg] - 180;
+      T[0][leg] = 180 - T[0][leg] ;
+      T[1][leg] = 180 - T[1][leg] ;
+      
+      //   T[0][leg] = 180 - T[0][leg];
+      //      T[1][leg] = 180 - T[1][leg]'
       onoffcontrol();
     }
     //*************************//
@@ -198,11 +213,11 @@ class Leg
       //      Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
       //ax=map(ax,-4200,-15600,11.5,96.5);
-      angle = angle + 3;
-      fb1 = abs(angle);
+      angle = angle ;
+      fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
-      Serial.print(" ");
+      Serial.print("   ");
       Serial.print(T[0][leg]);
       //Serial.print("                az=");
       //Serial.print(az);
@@ -219,7 +234,8 @@ class Leg
       Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
       //ax=map(ax,-4200,-15600,11.5,96.5);
-      fb2 = abs(angle + 10);
+      //angle = abs(angle)  ;
+      fb2 = abs(angle);
       //fb2=angle-fb1;
       //      Serial.print("  Leg2  ");
       Serial.print(fb2);
@@ -250,7 +266,7 @@ class Leg
       //Serial.println(ax);
       //      Serial.println(az);
       digitalWrite(10, LOW);
-      //      avg2 = average(fb2,1);
+//            avg2 = average(fb2,1);
 
       //Print statements for debugging
       //      Serial.print(leg);
@@ -270,7 +286,7 @@ class Leg
       Serial.println(error1);
       Serial.println(error2);
       //Control statements for feedback based motion
-      if (abs(error1) < 2)
+      if ((error1) <= 0.5 && (error1) >=  -0.5 )
       {
         hardstop(relay[leg][0], relay[leg][1]);
         flag[0][leg] = 0;
@@ -283,7 +299,7 @@ class Leg
         Serial.println("L1 start");
 
       }
-      if (abs(error2) < 2)
+      if ((error2) <= 0.5 && (error2) >=  -0.5 )
       {
         hardstop(relay[leg][2], relay[leg][3]);
         flag[1][leg] = 0;
@@ -292,7 +308,7 @@ class Leg
       }
       else
       {
-          flag[1][leg] = 1;
+        flag[1][leg] = 1;
         Serial.println("L2 start");
 
       }
@@ -384,7 +400,7 @@ class Leg
         pointer++;
         Serial.print("    pointer   " );
         Serial.println(pointer);
-        if (pointer > 6)
+        if (pointer >  no_pointer-1 )
         {
           pointer = 0;
         }
@@ -398,7 +414,7 @@ class Leg
       static int total[2] = {0, 0};
       //      static int readingsu
       static int numReadings = 10;
-      static int readings[2][10] = {{0, 0, 0, 0, 0,0, 0, 0, 0, 0}, { 0, 0, 0, 0, 0,0, 0, 0, 0, 0}};
+      static int readings[2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
       total[leg] = total[leg] - readings[leg][readIndex[leg]];
       // read from the sensor:
       readings[leg][readIndex[leg]] = val;
