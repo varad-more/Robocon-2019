@@ -144,8 +144,8 @@ class Leg
       phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
       T[0][leg] = phi1 + phi2;
       T[1][leg] = phi3 + T[0][leg] - 180;
-//      T[0][leg] = 180 - T[0][leg] ;/
-//      T[1][leg] = 180 - T[1][leg] ;/
+      T[0][leg] = 180 - T[0][leg] ;
+      T[1][leg] = 180 - T[1][leg] ;
       //steve changes
       //      T[0][leg] = 180 - T[0][leg];
       //      T[1][leg] = 180 - T[1][leg];
@@ -186,8 +186,8 @@ class Leg
       phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
       T[0][leg] = phi1 + phi2;
       T[1][leg] = phi3 + T[0][leg] - 180;
-//      T[0][leg] = 180 - T[0][leg] ;/
-//      T[1][leg] = 180 - T[1][leg] ;/
+      T[0][leg] = 180 - T[0][leg] ;
+      T[1][leg] = 180 - T[1][leg] ;
 
       //   T[0][leg] = 180 - T[0][leg];
       //      T[1][leg] = 180 - T[1][leg]'
@@ -215,7 +215,7 @@ class Leg
       //      Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
       //ax=map(ax,-4200,-15600,11.5,96.5);
-      angle = 180-abs(angle) ;
+      angle = angle ;
       fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
@@ -237,7 +237,7 @@ class Leg
       angle = 180 * atan2(ax, az) / PI;
       //ax=map(ax,-4200,-15600,11.5,96.5);
       //angle = abs(angle)  ;
-      fb2 = 180-abs(angle);
+      fb2 = abs(angle);
       //fb2=angle-fb1;
       //      Serial.print("  Leg2  ");
       Serial.print(fb2);
@@ -467,7 +467,7 @@ void setup()
     //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
     //ax=map(ax,-4200,-15600,11.5,96.5);
-    fb2 = 180-abs(angle + 10);
+    fb2 = abs(angle + 10);
     //fb2=angle-fb1;
     //      Serial.print("  Leg2  ");
     //      Serial.print(fb2);
@@ -495,7 +495,7 @@ void setup()
     angle = 180 * atan2(ax, az) / PI;
     //ax=map(ax,-4200,-15600,11.5,96.5);
     angle = angle + 3;
-    fb1 = 180-abs(angle);
+    fb1 = abs(angle);
     //      Serial.print(fb1);
     avg1 = leg1.average(fb1, 0);
   }
