@@ -9,7 +9,7 @@ volatile int a = 0;
 //MPU6050 accelgyro; // <--use for AD0 floating
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
 
-ExponentialFilter<long> ADCFilter(1, 0); // <--change values of (1,0) to change filter performance
+ExponentialFilter<long> ADCFilter(10, 0); // <--change values of (1,0) to change filter performance
 //                                                               ^
 /**********************************************/
 //Declare constants for mpu
@@ -157,9 +157,9 @@ class Leg
       if (az > 0)
       {
         if (ax < 0)
-          ax = map(ax, 0, -15000, 0, 90);
-        else
-          ax = map(ax, 0, 15000, 270, 359);
+          ax = map(ax, 0, -15500, 10, 99);
+        //else
+        //ax = map(ax, 0, 15000, 270, 359);
       }
       else {
         if (ax < 0)
@@ -169,9 +169,9 @@ class Leg
       }
       fb1 = ax;
       Serial.print("Leg1");
-      Serial.println(ax);
+      Serial.println(fb1);
       digitalWrite(8, LOW);
-
+      delay(100);
       digitalWrite(9, HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       ADCFilter.Filter(ax);
@@ -191,14 +191,14 @@ class Leg
       }
       fb2 = ax;
       Serial.print("Leg2");
-      Serial.println(ax);
+      Serial.println(fb2);
       digitalWrite(9, LOW);
-
+      delay(100);
 
       //Print statements for debugging
       Serial.print(leg);
       Serial.print("  ");
-      Serial.print("  fb1  ");
+      Serial.print("            fb1  ");
       Serial.print(fb1);
       Serial.print("  T[0][leg]  ");
       Serial.print(T[0][leg]);
@@ -257,20 +257,20 @@ class Leg
 
     void backward(int l1, int l2)
     {
-      digitalWrite(l1, HIGH);
-      digitalWrite(l2, LOW);
+      //digitalWrite(l1, HIGH);
+      //digitalWrite(l2, LOW);
     }
 
     void forward(int l1, int l2)
     {
-      digitalWrite(l1, LOW);
-      digitalWrite(l2, HIGH);
+      //digitalWrite(l1, LOW);
+      //digitalWrite(l2, HIGH);
     }
 
     void hardstop(int l1, int l2)
     {
-      digitalWrite(l1, LOW);
-      digitalWrite(l2, LOW);
+      //digitalWrite(l1, LOW);
+      //digitalWrite(l2, LOW);
     }
     //*************************//
 };
@@ -288,8 +288,8 @@ void setup()
 {
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
-  digitalWrite(8, HIGH);
-  digitalWrite(9, LOW);
+  digitalWrite(8, LOW);
+  digitalWrite(9, HIGH);
 
   Wire.begin();
   accelgyro.initialize();
