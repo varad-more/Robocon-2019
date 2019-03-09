@@ -31,14 +31,15 @@ float a1 = 0;
 float a2 = 39;
 float a3 = 0;
 float a4 = 39;
-volatile int  no_pointer = 13 ;
+float fb1;
+volatile int  no_pointer = 4 ;
 int relay[4][4] = {{4, 5 , 6, 7}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};//{{23, 25, 27, 29}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int neg_flag[4] = {0, 0, 0, 0};
 volatile int pos_flag[4] = {0, 0, 0, 0};
 //volatile float points[36][2] = { { 0,55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{ -8, 55.15},{ -7, 55.15},{ -6, 55.15},{ -5, 55.15},{ -4, 55.15},{ -3, 55.15},{ -2, 55.15},{ -1, 55.15},{ 0, 55.15},{ 1, 55.15},{ 2, 55.15},{ 3, 55.15} ,{ 4, 55.15},{ 5, 55.15},{ 6, 55.15},{ 7, 55.15},{ 8, 55.15},{ 9, 55.15},{ 10, 55.15},{ 9.8, 54.15},{ 9.17, 53.15},{ 8, 52.15},{ 6, 51.15},{ 0, 55.15}};
-volatile float points[13][2] = {   { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { 0, 55.15}, { 10, 55.15}, { 9.8, 54.15}, { 9.17, 53.15}, { 8, 52.15}, { 6, 51.15}, { 0, 55.15}};
+volatile float points[4][2] = {     {-20, 50},{20,50} , { 1, 45}, { -20, 55} };
 //volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
 //volatile float points[36][2] = { { 0, 55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{-8,55.15},{-7,55.15},{-6,55.15},{-5,55.15},{-4,55.15},{-3,55.15},{-2,55.15},{-1,55.15},{0,55.15},{1,55.15},{2,55.15},{3,55.15},{4,55.15},{5,55.15},{6,55.15},{7,55.15},{8,55.15},{9,55.15},{10,55.15},{9.8,54.15},{9.17,53.15},{8,52.15},{6,51.15},{0.50.15} };
 volatile int pointer = 0;
@@ -75,15 +76,12 @@ class Leg
       {
         calculate_neg_angle(X, Y);
         neg_flag[leg] = 0;
-        //        Serial.println("neg");
-
       }
 
       if  (pos_flag[leg] == 1)
       {
         calculate_pos_angle(X, Y);
         pos_flag[leg] = 0;
-        //        Serial.println("pos");
       }
     }
 
@@ -93,13 +91,10 @@ class Leg
 
     void choose_fn()
     {
-      //  Serial.println("In choose_fn");
-      //Serial.print(X,Y);
       if (X < 0)
       {
         if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
-          //          calculate_neg_angle(X, Y);
           neg_flag[leg] = 1;
         }
       }
@@ -107,14 +102,11 @@ class Leg
       {
         if (flag[0][leg] == 1 || flag[1][leg] == 1)
         {
-          //          calculate_pos_angle(X, Y);
           pos_flag[leg] = 1;
         }
       }
       else
       {
-        // Serial.print("X ");
-        //Serial.print(X);
         Serial.println("  gotopos not set");
       }
     }
@@ -124,28 +116,27 @@ class Leg
 
     void calculate_pos_angle(float X, float Y)
     {
-      //  Serial.println("In calcpos");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
       float phi3 = 0;
-      //abhijit
-      //      r1 = sqrt(X * X + Y * Y);
-      //      phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
-      //      phi2 = atan(Y / X);
-      //      T[0][leg] = phi2 - phi1;
-      //      phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-      //      T[1][leg] = pi - phi3;
-      //      T[0][leg] = T[0][leg] * 180 / pi;
-      //      T[1][leg] = T[1][leg] * 180 / pi;
       r1 = sqrt(X * X + Y * Y);
-      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
-      phi2 = (atan(Y / X)) * 180 / PI;
-      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
-      T[0][leg] = phi1 + phi2;
-      T[1][leg] = phi3 + T[0][leg] - 180;
-//      T[0][leg] = 180 - T[0][leg] ;/
-//      T[1][leg] = 180 - T[1][leg] ;/
+      phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
+      phi2 = atan(Y / X);
+      T[0][leg] = phi2 - phi1;
+      phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
+      T[1][leg] = pi - phi3;
+      T[0][leg] = T[0][leg] * 180 / pi;
+      T[1][leg] = T[1][leg] * 180 / pi;
+      //
+      //      r1 = sqrt(X * X + Y * Y);
+      //      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
+      //      phi2 = (atan(Y / X)) * 180 / PI;
+      //      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
+      //      T[0][leg] = phi1 + phi2;
+      //      T[1][leg] = phi3 + T[0][leg] - 180;
+      //      T[0][leg] = 180 - T[0][leg] ;/
+      //      T[1][leg] = 180 - T[1][leg] ;/
       //steve changes
       //      T[0][leg] = 180 - T[0][leg];
       //      T[1][leg] = 180 - T[1][leg];
@@ -170,24 +161,27 @@ class Leg
       float phi1 = 0;
       float phi2 = 0;
       float phi3 = 0;
-
-      //      r1 = sqrt(X * X + Y * Y);
-      //      phi1 = (acos(((a4 * a4) + (a2 * a2) - (r1 * r1)) / (2.0 * a2 * r1)))*180./PI;
-      //      phi2 = (atan(-Y / X))*180./pi;
-      //      phi3 = (acos(((r1 * r1) + (a2 * a2) - (a4 * a4)) / (2.0 * a2 * a4)))*180./PI;
-      //
-      //      T[0][leg] = phi1+phi2;
-      //      T[1][leg] = phi3+T[0][leg]-180;
+      X = abs(X);
+      r1 = sqrt(X * X + Y * Y);
+      phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
+      phi2 = atan(-Y / X);
+      phi2 = pi + phi2;
+      T[0][leg] = phi2 - phi1;
+      phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
+      T[1][leg] = pi - phi3;
+      T[0][leg] = T[0][leg] * 180 / pi;
+      T[1][leg] = T[1][leg] * 180 / pi;
+      //      T[1/][leg] = phi3 + T[0][leg] - 180;
       //      //steve
 
-      r1 = sqrt(X * X + Y * Y);
-      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
-      phi2 = (atan(-Y / X)) * 180 / PI; // Here X is negetive so, in k2 it is multipled by negetive sign.
-      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
-      T[0][leg] = phi1 + phi2;
-      T[1][leg] = phi3 + T[0][leg] - 180;
-//      T[0][leg] = 180 - T[0][leg] ;/
-//      T[1][leg] = 180 - T[1][leg] ;/
+      //      r1 = sqrt(X * X + Y * Y);
+      //      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
+      //      phi2 = (atan(-Y / X)) * 180 / PI; // Here X is negetive so, in k2 it is multipled by negetive sign.
+      //      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
+      //      T[0][leg] = phi1 + phi2;
+      //      T[1][leg] = phi3 + T[0][leg] - 180;
+      //      T[0][leg] = 180 - T[0][leg] ;/
+      //      T[1][leg] = 180 - T[1][leg] ;/
 
       //   T[0][leg] = 180 - T[0][leg];
       //      T[1][leg] = 180 - T[1][leg]'
@@ -199,7 +193,8 @@ class Leg
     void onoffcontrol()
     {
       //Read the feedback pot
-      float fb1 = 0, avg1, avg2;
+      float  avg1, avg2;
+      fb1 = 0;
       float fb2 = 0;
       float error1 = 0;
       float error2 = 0;
@@ -211,18 +206,12 @@ class Leg
       az = kfy.updateEstimate(az);
 
       Serial.print("Leg1   angle=");
-      //      Serial.print(ax);
-      //      Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
-      //ax=map(ax,-4200,-15600,11.5,96.5);
-      angle = 180-abs(angle) ;
-      fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+      fb1 = abs(angle) - 5.5 ;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
       Serial.print("   ");
       Serial.print(T[0][leg]);
-      //Serial.print("                az=");
-      //Serial.print(az);
       digitalWrite(9, LOW);
 
       digitalWrite(10, HIGH);
@@ -232,14 +221,11 @@ class Leg
       ax = kfx1.updateEstimate(ax);
       az = kfy1.updateEstimate(az);
       Serial.print("Leg2   angle=");
-      //      Serial.print(ax);
       Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
-      //ax=map(ax,-4200,-15600,11.5,96.5);
-      //angle = abs(angle)  ;
-      fb2 = 180-abs(angle);
-      //fb2=angle-fb1;
-      //      Serial.print("  Leg2  ");
+
+      fb2 =  abs(angle);
+      fb2 = fb2 - fb1;
       Serial.print(fb2);
       Serial.print(" ");
       Serial.println(T[1][leg]);
@@ -249,46 +235,16 @@ class Leg
       Serial.println(avg2);
       fb1 = avg1;
       fb2 = avg2;
-      //      ax = ADCFilter2.Current();
-      //      if (az > 0)
-      //      {
-      //        if (ax < 0)
-      //          ax = map(ax, 0, -15000, 5, 99);
-      //        else
-      //          ax = map(ax, 0, 15000, 270, 359);
-      //      }
-      //      else {
-      //        if (ax < 0)
-      //          ax = map(ax, 0, -15000, 180, 90);
-      //        else
-      //          ax = map(ax, 0, 15000, 180, 270);
-      //      }
-      //      fb2 = ax;
-      //      Serial.println("Leg2");
-      //Serial.println(ax);
-      //      Serial.println(az);
-      digitalWrite(10, LOW);
-      //            avg2 = average(fb2,1);
 
-      //Print statements for debugging
-      //      Serial.print(leg);
-      //      Serial.print("  ");
-      //      Serial.print("  fb1  ");
-      //      Serial.print(fb1);
-      //      Serial.print("  T[0][leg]  ");
-      //      Serial.print(T[0][leg]);
-      //      Serial.print("  fb2  ");
-      //      Serial.print(fb2);
-      //      Serial.print("  T[1][leg]  ");
-      //      Serial.println(T[1][leg]);
-      //
+      digitalWrite(10, LOW);
+
       //      //Find error
       error1 = T[0][leg] - fb1;
       error2 = T[1][leg] - fb2;
       Serial.println(error1);
       Serial.println(error2);
       //Control statements for feedback based motion
-      if ((error1) <= 0.5 && (error1) >=  -0.5 )
+      if ((error1) <= 5 && (error1) >=  -5 )
       {
         hardstop(relay[leg][0], relay[leg][1]);
         flag[0][leg] = 0;
@@ -297,11 +253,11 @@ class Leg
       }
       else
       {
-        //flag[0][leg] = 1;
+        flag[0][leg] = 1;
         Serial.println("L1 start");
 
       }
-      if ((error2) <= 0.5 && (error2) >=  -0.5 )
+      if ((error2) <= 5 && (error2) >= -5 )
       {
         hardstop(relay[leg][2], relay[leg][3]);
         flag[1][leg] = 0;
@@ -390,8 +346,8 @@ class Leg
 
     void hardstop(int l1, int l2)
     {
-      digitalWrite(l1, LOW);
-      digitalWrite(l2, LOW);
+      digitalWrite(l1, HIGH);
+      digitalWrite(l2, HIGH);
     }
     void check_point()
     {
@@ -400,6 +356,8 @@ class Leg
       {
         //        Serial.println("NEXT POINT");
         pointer++;
+        Serial.println("####################################################################");
+        delay(1000);
         Serial.print("    pointer   " );
         Serial.println(pointer);
         if (pointer >  no_pointer - 1 )
@@ -407,7 +365,6 @@ class Leg
           pointer = 0;
         }
         gotopos(points[pointer][0], points[pointer][1]);
-        //        Serial.println(points[pointer][0], points[pointer][1]);
       }
     }
     float average(int val, int leg)
@@ -457,23 +414,20 @@ void setup()
   Serial.begin(115200);
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
-  { float fb2, avg2, angle;
+  {
+    float fb2, avg2, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
     ax = kfx1.updateEstimate(ax);
     az = kfy1.updateEstimate(az);
-    //      Serial.print("Leg2   angle=");
+    Serial.print("Leg2   angle=");
     //      Serial.print(ax);
-    //      Serial.print(" ");
+    Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
-    //ax=map(ax,-4200,-15600,11.5,96.5);
-    fb2 = 180-abs(angle + 10);
-    //fb2=angle-fb1;
-    //      Serial.print("  Leg2  ");
-    //      Serial.print(fb2);
-    //      Serial.print(" ");
-    //      Serial.println(T[1][leg]);
-    //      Serial.print(" ");
+
+    fb2 =  abs(angle);
+    fb2 = fb2 - fb1;
+
     avg2 = leg1.average(fb2, 1);
   }
 
@@ -483,49 +437,23 @@ void setup()
   accelgyro.initialize();
   for (int a = 0; a <= 9; a++)
   {
-    float fb1, avg1, angle;
+    float  avg1, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
     ax = kfx.updateEstimate(ax);
     az = kfy.updateEstimate(az);
 
-    //      Serial.print("Leg1   angle=");
+    Serial.print("Leg1   angle=");
     //      Serial.print(ax);
     //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
-    //ax=map(ax,-4200,-15600,11.5,96.5);
-    angle = angle + 3;
-    fb1 = 180-abs(angle);
-    //      Serial.print(fb1);
+
+    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    Serial.print(fb1);
     avg1 = leg1.average(fb1, 0);
   }
 
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-  //   digitalWrite(10, HIGH);
-  //  digitalWrite(9, LOW);
-  //  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-  //  for (int i = 0; i < 4; i++)
-  //  {
-  //    for (int j = 0; j < 4; j++)
-  //    {
-  //      pinMode(relay[i][j], OUTPUT);
-  //    }
-  //  }
-
-
-
-  // join I2C bus (I2Cdev library doesn't do this automatically)
-  //Wire.begin();
-
-  // initialize device
-  Serial.println("Initializing I2C devices...");
-  accelgyro.initialize();
-
-  // verify connection
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-
-
 
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
@@ -566,7 +494,9 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-  leg1.gotopos(0, 55.15);
+  leg1.gotopos(-20, 60);
+  //  leg2.gotopos(-20, /60);
+  Serial.println("done with this ");
   //  leg2.gotopos(-20, 60);
   //  leg3.gotopos(-20, 60);
   //  leg4.gotopos(-20, 60);
@@ -583,7 +513,10 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   OCR1A = 3000;
   //Serial.println("In ISR");
   leg1.choose_fn();
-  leg1.check_point();
+  //leg1.check_point();
+  //  leg2.choose_fn();
+  //  leg2.check_point();
+
   //  a++;
   sei();
   //  leg2.choose_fn();
@@ -600,6 +533,7 @@ void loop()
   //Serial.println("hello");
   //Serial.println(a);
   leg1.chosen_fun();
+  //leg2.chosen_fun();
 
 
   //*************************//
