@@ -28,7 +28,10 @@ int* calc_motor_speeds(int v, double theta);
 
 void setup ()
 {
-  
+  pinMode(21,OUTPUT);
+  pinMode(23,OUTPUT);
+  pinMode(25,OUTPUT);
+  pinMode(27,OUTPUT);
   Serial.begin(115200);
   if (Usb.Init() == -1)
   {
@@ -42,6 +45,7 @@ void setup ()
 
 void loop ()
 {
+
      requestXbox();
 }
 
@@ -55,7 +59,10 @@ void requestXbox()
           xboxNumber =  i;
           Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
           Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
-
+          digitalWrite(21,HIGH);
+          digitalWrite(23,HIGH);    
+          digitalWrite(25,HIGH);
+          digitalWrite(27,HIGH); 
           if (Xbox.getButtonPress(B,  xboxNumber)) {
             hard_brk = String(1);
             Serial.println("hard_brake");
@@ -80,26 +87,29 @@ void requestXbox()
 
             Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
             Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
-            pwm = String (Vector.Magnitude);
-            dir = String (Vector.Direction);
+            pwm = String(int(Vector.Magnitude));
+            dir = String(int(Vector.Direction));
           }
-          if (Xbox.getButtonPress(L2,  xboxNumber) > 200){
-            //throw
+          if (Xbox.getButtonPress(L2,  xboxNumber) >= 100){
+            Serial.print(Xbox.getButtonPress(L2,  xboxNumber));
             Serial.println("Throw");
           }
           if (Xbox.getButtonPress(X,  xboxNumber)){
-            //
+                        digitalWrite(21,LOW);
+
           }
           else if (Xbox.getButtonPress(Y,  xboxNumber)){
             //
           }
           else if (Xbox.getButtonPress(UP,  xboxNumber)){
             //lift
+            digitalWrite(23,LOW);
             Serial.println("Lift shagai");
           }
           else if (Xbox.getButtonPress(DOWN,  xboxNumber)){
             //drop
             Serial.println("Drop shagai");
+            digitalWrite(25,LOW);
           }
           else if (Xbox.getButtonPress(LEFT,  xboxNumber)){
             //open
@@ -120,17 +130,18 @@ void requestXbox()
     }
   }   while (Xbox.Xbox360Connected[xboxNumber]);
   //  soft_brake();
-  }
+}
 void requestEvent()
 {
   mystring= hard_brk + ',' + soft_brk + ',' + cl + ',' + anti_cl + ',' + pwm + ',' + dir ;
+  Serial.println(mystring);
   Wire.write(mystring.c_str());
-  hard_brk = "";
-  soft_brk = "";
-  cl = "";
-  anti_cl = "";
-  pwm = "";
-  dir = "";
+  hard_brk = "0";
+  soft_brk = "0";
+  cl = "0";
+  anti_cl = "0";
+  pwm = "000";
+  dir = "0000";
 }
 
 int vector_magnitude(uint8_t  xboxNumber)

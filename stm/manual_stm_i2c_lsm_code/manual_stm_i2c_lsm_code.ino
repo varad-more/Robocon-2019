@@ -65,15 +65,15 @@ void setup() {
   Wire.begin();
   Serial.begin(115200);
 
-  //  MA.pwm = 4;
-  //  MB.pwm = 2;
-  //  MC.pwm = 3;
-  //  MA.dir_r = 30;
-  //  MA.dir_l = 32;
-  //  MB.dir_r = 24;
-  //  MB.dir_l = 22;
-  //  MC.dir_r = 26;
-  //  MC.dir_l = 28;
+    MA.pwm = PA8;
+    MB.pwm = PA9;
+    MC.pwm = PA10;
+    MA.dir_r = PB12;
+    MA.dir_l = PB13;
+    MB.dir_r = PB14;
+    MB.dir_l = PB15;
+    MC.dir_r = PA11;
+    MC.dir_l = PA12;
 
   pinMode(MA.dir_r, OUTPUT);
   pinMode(MA.dir_l, OUTPUT);
@@ -103,18 +103,20 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Wire.requestFrom(8, 16);
- // Serial.println("started");
+  Wire.requestFrom(8,16);
+//  Serial.println("started");
   int i = 0;
+  digitalWrite(PB13,HIGH);
   while (Wire.available())
   {
+    digitalWrite(PB13,LOW);
     int *m_speed;
     char *bot_dir;
     char a = Wire.read();
     stri[i] = a;
     i++;
     String st = String(stri); 
-    Serial.println();
+//    Serial.println();
     Serial.print(st);
     //Serial.print(" ");
     int comma_1 = st.indexOf(',');
@@ -123,11 +125,6 @@ void loop() {
     int comma_4 = st.indexOf(',',comma_3+1);
     int comma_5 = st.indexOf(',',comma_4+1);
     Serial.println();
-    Serial.print(comma_1);Serial.print(" ");
-    Serial.print(comma_2);Serial.print(" ");
-    Serial.print(comma_3);Serial.print(" ");
-    Serial.print(comma_4);Serial.print(" ");
-    Serial.print(comma_5);Serial.print(" ");
 
     int hrd_brk,soft_brk,anti_clo,clo,pwm,dir ;
     
@@ -137,10 +134,11 @@ void loop() {
     clo = (st.substring(comma_3+1,comma_4).toInt());   
     String  pwm_l = (st.substring(comma_4+1,comma_5));
     String  dir_l = (st.substring(comma_5+1));
-    Serial.print (pwm_l);Serial.print(" ");Serial.print(dir_l); 
+    //Serial.print (pwm_l);Serial.print(" ");Serial.print(dir_l); 
     
     pwm = pwm_l.toInt();
     dir = dir_l.toInt();
+//    Serial.println(pwm);
    /* 
     Serial.print (" ");
     Serial.print (pwm);
@@ -149,34 +147,33 @@ void loop() {
     */
     if (hrd_brk == 1 )
     {
-      Serial.print(hrd_brk);
+//      Serial.print(hrd_brk);
       hard_brake(255);
     }
     else if (soft_brk==1)
     {
-      Serial.print(soft_brk);
+//      Serial.print(soft_brk);
       soft_brake();  
     }
     else if (anti_clo == 1)
     {
-      Serial.print(anti_clo);
+//      Serial.print(anti_clo);
       anti_clock_wise(120);
     }
     else if (clo ==1)
     {
-      Serial.print(clo);
+//      Serial.print(clo);
       clock_wise(120);  
     }
     else 
     {
-      Serial.print(pwm);Serial.print(" ");Serial.print(dir);
+      //Serial.print(pwm);Serial.print(" ");Serial.print(dir);
       m_speed=calc_motor_speeds(pwm,dir);
       bot_dir = calc_motor_direction(dir);
       set_motor_values(m_speed,bot_dir);
     }  
   
   }
-//  Serial.print(st);
 }
 
 void anti_clock_wise(int pwm) {
