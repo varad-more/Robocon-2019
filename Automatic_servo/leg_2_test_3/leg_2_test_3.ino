@@ -47,8 +47,8 @@ volatile int flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int neg_flag[4] = {0, 0, 0, 0};
 volatile int pos_flag[4] = {0, 0, 0, 0};
 //volatile float points[9][2] = {{-19.34,54.90},{-17.3,49.96},{-13.4,45.153},{9.8,42.66},{13.7,45.429},{17.2,49.79},{19.3,54.755},{20,60},{-20,60} };
-volatile float points_leg1[3][2] = {{ -2, 50.41}, {20, 60}, { -20, 60} };
-volatile float points_leg2[3][2] = {{-20, 60}, {-10, 55.41}, {20,60} };
+volatile float points_leg1[3][2] = {{1,50 },{ -20 , 57 },{ 20 , 57 }};//, { -20, 60} };
+volatile float points_leg2[3][2] = {{-1,50},{ 20 , 57},{ -20 , 57}};
 //volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
 //volatile float points[36][2] = { { 0, 55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{-8,55.15},{-7,55.15},{-6,55.15},{-5,55.15},{-4,55.15},{-3,55.15},{-2,55.15},{-1,55.15},{0,55.15},{1,55.15},{2,55.15},{3,55.15},{4,55.15},{5,55.15},{6,55.15},{7,55.15},{8,55.15},{9,55.15},{10,55.15},{9.8,54.15},{9.17,53.15},{8,52.15},{6,51.15},{0.50.15} };
 volatile int pointer = 0;
@@ -66,12 +66,15 @@ class Leg
     SimpleKalmanFilter kfy = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfx1 = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfy1 = SimpleKalmanFilter(e_mea, e_est, q);
-     int readIndex[2] = {0, 0};
-      int total[2] = {0, 0};
-      //      static int readingsu
-      int numReadings = 10;
-      int readings[2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-    //
+    int readIndex[2] = {0, 0};
+    int total[2] = {0, 0};
+
+    int numReadings = 10;
+    int readings[2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+    float  avg1, avg2;
+    float fb2 = 0, fb1 = 0;
+    float error1 = 0;
+    float error2 = 0;
     Leg(int _leg, SimpleKalmanFilter _kfx, SimpleKalmanFilter _kfy, SimpleKalmanFilter _kfx1, SimpleKalmanFilter _kfy1, volatile float _points[][2])
     {
       leg = _leg; //declare public variable
@@ -228,11 +231,7 @@ class Leg
       float Kp1 = 1.3, Kp2 = 45;
       int standard = 150;
       //Read the feedback pot
-      float  avg1, avg2;
-      fb1 = 0;
-      float fb2 = 0;
-      float error1 = 0;
-      float error2 = 0;
+
       digitalWrite(mpu[leg][0], HIGH);
       digitalWrite(mpu[leg][1], LOW);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
@@ -413,22 +412,23 @@ class Leg
         if (pointer >  no_pointer - 1 )
         {
           pointer = 0;
+         
         }
         gotopos(points[pointer][0], points[pointer][1]);
       }
     }
     float average(int val, int leg)
     {
-      
-//      Serial.println();
-//      for (int o = 0 ; o < 2; o++)
-//      {
-//        for (int p = 0; p < 10; p++)
-//        {
-//          Serial.print(" "); Serial.print(readings[o][p]);
-//        }
-//        Serial.println();
-//      }
+
+      //      Serial.println();
+      //      for (int o = 0 ; o < 2; o++)
+      //      {
+      //        for (int p = 0; p < 10; p++)
+      //        {
+      //          Serial.print(" "); Serial.print(readings[o][p]);
+      //        }
+      //        Serial.println();
+      //      }
       total[leg] = total[leg] - readings[leg][readIndex[leg]];
       // read from the sensor:
       readings[leg][readIndex[leg]] = val;
@@ -615,8 +615,8 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-  leg1.gotopos(-20, 60);
-  leg2.gotopos(20, 60);
+leg1.gotopos(-20, 60);
+leg2.gotopos(20, 60);
   Serial.println("done with this ");
   //  leg2.gotopos(-20, 60);
   //  leg3.gotopos(-20, 60);
@@ -634,11 +634,10 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   OCR1A = 3000;
   //Serial.println("In ISR");
   leg1.choose_fn();
-  leg1.check_point();
-  leg2.choose_fn();
+ leg2.choose_fn();
+ leg1.check_point();
  leg2.check_point();
-
-  //  a++;
+   //  a++;
   sei();
   //  leg2.choose_fn();
   //  leg3.choose_fn();
@@ -654,8 +653,8 @@ void loop()
   //Serial.println("hello");
   //Serial.println(a);
   leg1.chosen_fun();
-  leg2.chosen_fun();
+leg2.chosen_fun();
 
 
   //*************************//
-}
+}   
