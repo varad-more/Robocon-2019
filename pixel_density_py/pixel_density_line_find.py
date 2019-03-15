@@ -43,7 +43,6 @@ SCAN_POS_X = RESOLUTION_X / 2
 SCAN_RADIUS_REG = 90
 # The number of itterations we scan to allow us to look ahead and give us more time to make better choices
 NUMBER_OF_CIRCLES =0
-NUMBER_OF_CIRCLES =0
 def scanLine(image, display_image, point, radius):
         x = point[0];
         y = point[1];
