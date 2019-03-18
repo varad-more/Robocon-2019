@@ -40,10 +40,10 @@ float a3 = 0;
 float a4 = 39;
 float fb1;
 
-volatile int  no_pointer = 6;
-volatile float points_leg1[6][2] = {{-20,50},{-10,50},{-5,50},{5,50},{10,50},{20,50}}; //{{1,50 },{ -20 , 57 },{ 20 , 57 }};//, { -20, 60} };
-volatile float points_leg2[6][2] = {{-20,50},{-10,50},{-5,50},{5,50},{10,50},{20,50}}; //{{-20,40}};//{{-1,50},{ 20 , 57},{ -20 , 57}};
 
+volatile float points_leg1[6][2] = {{-20,60},{-18,55},{-10,50},{10,50},{18,55},{20,60}}; //{{1,50 },{ -20 , 57 },{ 20 , 57 }};//, { -20, 60} };
+volatile float points_leg2[6][2] = {{-20,60},{-18,55},{-10,50},{15,55},{18,55},{20,60}}; //{{-20,40}};//{{-1,50},{ 20 , 57},{ -20 , 57}};
+const int  no_pointer = 6;
 int pwm[2][2] = {{2, 3}, {4, 5}};
 int driver[2][4] = {{24, 25, 27, 26} , {28, 29, 31, 30}};
 int mpu [2][2] = {{40, 41}, {42, 43}};
@@ -54,7 +54,7 @@ volatile int pos_flag[4] = {0, 0, 0, 0};
 //volatile float points[9][2] = {{-19.34,54.90},{-17.3,49.96},{-13.4,45.153},{9.8,42.66},{13.7,45.429},{17.2,49.79},{19.3,54.755},{20,60},{-20,60} };
 //volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
 //volatile float points[36][2] = { { 0, 55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{-8,55.15},{-7,55.15},{-6,55.15},{-5,55.15},{-4,55.15},{-3,55.15},{-2,55.15},{-1,55.15},{0,55.15},{1,55.15},{2,55.15},{3,55.15},{4,55.15},{5,55.15},{6,55.15},{7,55.15},{8,55.15},{9,55.15},{10,55.15},{9.8,54.15},{9.17,53.15},{8,52.15},{6,51.15},{0.50.15} };
-volatile int pointer = 0;
+
 /*****************************************************************************************************************************/
 //Class for leg
 
@@ -70,7 +70,7 @@ class Leg
     volatile int leg;  //private variable for leg number
     volatile float X;
     volatile float Y;
-    volatile float points[3][2];
+    volatile float points[no_pointer][2];
     friend void chooseleg();
     SimpleKalmanFilter kfx = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfy = SimpleKalmanFilter(e_mea, e_est, q);
@@ -78,7 +78,7 @@ class Leg
     SimpleKalmanFilter kfy1 = SimpleKalmanFilter(e_mea, e_est, q);
     int readIndex[2] = {0, 0};
     int total[2] = {0, 0};
-
+    volatile int pointer = 0; 
     int numReadings = 10;
     int readings[2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
     float  avg1, avg2;
@@ -92,14 +92,14 @@ class Leg
       SimpleKalmanFilter kfy = _kfy;
       SimpleKalmanFilter kfx1 = _kfx1;
       SimpleKalmanFilter kfy1 = _kfy1;
-      for (int i = 0; i < 3; i++)
+      for (int i = 0; i < no_pointer ; i++)
       {
         for (int j = 0; j < 2; j++)
         {
           points[i][j] = _points[i][j];
         }
       }
-
+   
 
     }
     //*************************//
@@ -107,6 +107,7 @@ class Leg
 
     void gotopos(volatile float _X, volatile  float _Y)
     {
+      
       Serial.println("In gotopos");
       X = _X;
       Y = _Y;
@@ -115,6 +116,8 @@ class Leg
       Serial.print(X);
       Serial.print("  ");
       Serial.print(Y);
+      Serial.print("  ");
+      Serial.print(no_pointer); 
     }
     void chosen_fun()
     {
@@ -638,7 +641,7 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-leg[l].gotopos(-20, 60);
+leg[l].gotopos(10,50);
 //leg2.gotopos(20, 60);
 
   Serial.println("done with this ");
@@ -657,9 +660,9 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   cli();
   OCR1A = 3000;
   //Serial.println("In ISR");
-  leg[1].choose_fn();
+  leg[l].choose_fn();
 // leg2.choose_fn();
-leg[1].check_point();
+leg[l].check_point();
 // leg2.check_point();
    //  a++;
   sei();
@@ -676,7 +679,7 @@ void loop()
 {
   //Serial.println("hello");
   //Serial.println(a);
- leg[1].chosen_fun();
+ leg[l].chosen_fun();
 //leg2.chosen_fun();
 
 

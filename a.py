@@ -14,7 +14,7 @@ for a in range(len(x)):
 for b in range(20,-21,-1):
 	if b == 0 :
 		continue
-	print('{',b,',',45,'},',end="")
+	print('{',b,',',55,'},',end="")
 	count = count + 1
 
 print(count)
