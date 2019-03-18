@@ -617,7 +617,7 @@ void setup()
   digitalWrite(mpu[0][1], LOW);
   digitalWrite(mpu[1][0], LOW);
   digitalWrite(mpu[1][1], LOW);
-
+ 
 
   //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
  Serial.print(" "); Serial.print(mpu[0][0]);Serial.print(" "); Serial.print(mpu[0][1]);Serial.print(" "); Serial.print(mpu[1][0]);Serial.print(" "); Serial.print(mpu[1][1]); 
@@ -645,7 +645,8 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-leg[l].gotopos(-20, 60);
+leg[0].gotopos(1,50);
+//leg[1].gotopos(-1,50);
 //leg2.gotopos(20, 60);
 
   Serial.println("done with this ");
@@ -664,10 +665,11 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   cli();
   OCR1A = 3000;
   //Serial.println("In ISR");
-  leg[0].choose_fn();
- leg[1].choose_fn();
+leg[0].choose_fn();
+//leg[1].choose_fn();
+
 leg[0].check_point();
- leg[1].check_point();
+//leg[1].check_point();
    //  a++;
   sei();
   //  leg2.choose_fn();
@@ -683,8 +685,7 @@ void loop()
 {
   //Serial.println("hello");
   //Serial.println(a);
- leg[l].chosen_fun();
- 
+//leg[1].chosen_fun(); 
 leg[0].chosen_fun();
 
 
