@@ -1,0 +1,9 @@
+
+20/03/2019
+
+these are the initial angles for the standby mode of the bot verified ny mayur mhaske on 
+leg0
+Link1   angle=42.43   40.72Link2   angle= 98.43 96.36
+leg1
+link1 angle=53.05   43.89    Link2   angle= 83.51 94.37
+
