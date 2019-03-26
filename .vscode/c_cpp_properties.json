@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/Libraries/**",
+                "/root/Arduino/libraries/**",
+                "/root/arduino-1.8.9/**",
+                "/root/robocon-2019/Libraries/**",
+                "/root/arduino-1.8.9/hardware/arduino/avr/libraries/SPI/src",
+                "/root/robocon-2019/Libraries/USB_Host_Shield_2.0-master/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
