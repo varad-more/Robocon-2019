@@ -1,17 +1,23 @@
-#define dir 34+1+1+1
-#define brk 26
-#define pwm 30+1+1+1
-#define brk1 27
-#define brk2 28
-#define brk3 29
+#define dir 8
+#define pwm 10
+#define brk 12
+
+
+#define dir1 9
+#define pwm1 11
+#define brk1 13
+
+//#define brk2 28
+//#define brk3 29
 
 void setup() {
   // put your setup code here, to run once:
 pinMode(dir,OUTPUT);
+pinMode(dir1,OUTPUT);
 pinMode(brk,OUTPUT);
 pinMode(brk1,OUTPUT);
-pinMode(brk2,OUTPUT);
-pinMode(brk3,OUTPUT);
+pinMode(pwm1,OUTPUT);
+//pinMode(brk3,OUTPUT);
 pinMode(pwm,OUTPUT);
 }
 
@@ -28,9 +34,8 @@ void loop() {
 //delay (500);
 digitalWrite(brk,HIGH);
 digitalWrite(brk1,HIGH);
-digitalWrite(brk2,HIGH);
-digitalWrite(brk3,HIGH);
-
+analogWrite(pwm,HIGH);
+analogWrite(pwm1,HIGH);
 
 }
 
