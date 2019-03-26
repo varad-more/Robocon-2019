@@ -1,7 +1,4 @@
-
-// this code is for driver recieved from robukits having direction pin ,brake pin , and pwm pin 
-
-
+// this code is for driver recieved from robukits having direction pin ,brake pin , and pwm pin
 //Include all libraries
 #include "I2Cdev.h"
 #include "MPU6050.h"
@@ -16,7 +13,7 @@ int e_mea = 1;
 float angle;
 int e_est = 1;
 int q = 1 ;
-int l=0,m=1,n=2,o=3;
+int l = 0, m = 1, n = 2, o = 3;
 SimpleKalmanFilter kfx11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfy11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfx12 = SimpleKalmanFilter(e_mea, e_est, q);
@@ -52,19 +49,20 @@ float a3 = 0;
 float a4 = 39;
 float fb1;
 volatile int  no_pointer = 4;
-int pwm[4][2] = {{30, 31}, {32, 33}}; 
-int driver[4][2] = {{34,35},{36,37}}; 
-int mpu [4][2] = {{22,23}, {24,25}}; 
-int brake[4][2]={{26,27},{28,29}}; 
+int pwm[4][2] = {{3, 2}, {5, 4}, {7, 6}, {9, 8}};
+int driver[4][2] = {{38, 36}, {42, 40}, {46, 44}, {50, 48}};
+int mpu [4][2] = {{22, 23}, {24, 25}, {26, 27}, {28, 29}};
+int brake[4][2] = {{39, 37}, {43, 41}, {47, 45}, {51, 49}};
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int neg_flag[4] = {0, 0, 0, 0};
 volatile int pos_flag[4] = {0, 0, 0, 0};
+boolean b; ///uiadhfiuahdif
 //volatile float points[9][2] = {{-19.34,54.90},{-17.3,49.96},{-13.4,45.153},{9.8,42.66},{13.7,45.429},{17.2,49.79},{19.3,54.755},{20,60},{-20,60} };
-volatile float points_leg1[4][2] = {{1,50},{20,60},{1,60},{-20,60}};//, { -20, 60} }; // rear
-volatile float points_leg3[4][2] = {{-20,60},{1,50},{20,60},{1,60}};//rear
-volatile float points_leg2[4][2] = {{-20,60},{1,60},{20,60},{1,50}};//front
-volatile float points_leg4[4][2] = {{1,60},{20,60},{1,50},{-20,60}};//front
+volatile float points_leg1[4][2] = {{1, 50}, {20, 60}, {1, 60}, { -20, 60}}; //, { -20, 60} }; // rear
+volatile float points_leg3[4][2] = {{ -20, 60}, {1, 50}, {20, 60}, {1, 60}}; //rear
+volatile float points_leg2[4][2] = {{ -20, 60}, {1, 60}, {20, 60}, {1, 50}}; //front
+volatile float points_leg4[4][2] = {{1, 60}, {20, 60}, {1, 50}, { -20, 60}}; //front
 //volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
 //volatile float points[36][2] = { { 0, 55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{-8,55.15},{-7,55.15},{-6,55.15},{-5,55.15},{-4,55.15},{-3,55.15},{-2,55.15},{-1,55.15},{0,55.15},{1,55.15},{2,55.15},{3,55.15},{4,55.15},{5,55.15},{6,55.15},{7,55.15},{8,55.15},{9,55.15},{10,55.15},{9.8,54.15},{9.17,53.15},{8,52.15},{6,51.15},{0.50.15} };
 volatile int pointer = 0;
@@ -75,7 +73,7 @@ volatile int pointer = 0;
 //{
 //  Leg current_leg;
 //  public:
-//  
+//
 //};
 class Leg
 {
@@ -89,7 +87,7 @@ class Leg
     SimpleKalmanFilter kfy = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfx1 = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfy1 = SimpleKalmanFilter(e_mea, e_est, q);
-    
+
     int readIndex[2] = {0, 0};
     int total[2] = {0, 0};
 
@@ -362,7 +360,7 @@ class Leg
         if (flag[0][leg] == 1)
         {
           //          forward(driver[leg][0], driver[leg][1]);
-          backward(driver[leg][0],brake[leg][0]);
+          backward(driver[leg][0], brake[leg][0]);
           Serial.print("link one  increase angle"); Serial.print(" "); Serial.print (driver[leg][0]); Serial.print(" "); Serial.print (driver[leg][1]);
         }
         if (flag[1][leg] == 1)
@@ -391,7 +389,7 @@ class Leg
         if (flag[0][leg] == 1)
         {
           //          backward(driver[leg][0], driver[leg][1]);
-          forward(driver[leg][0],brake[leg][0]);
+          forward(driver[leg][0], brake[leg][0]);
           Serial.print("link one decrease angle"); Serial.print(" "); Serial.print (driver[leg][0]); Serial.print(" "); Serial.print (driver[leg][1]);
         }
         if (flag[1][leg] == 1)
@@ -409,33 +407,33 @@ class Leg
 
     void backward(int l1, int l2)
     {
-      // actuator opening 
-      digitalWrite(l2,LOW);
+      // actuator opening
+      digitalWrite(l2, LOW);
       digitalWrite(l1, LOW);
-      
+
     }
 
     void forward(int l1, int l2)
     {
-      // actuator closing 
-      digitalWrite(l2,LOW);
+      // actuator closing
+      digitalWrite(l2, LOW);
       digitalWrite(l1, HIGH);
-     
+
     }
 
     void hardstop(int l1)
     {
-      digitalWrite(l1,HIGH);
+      digitalWrite(l1, HIGH);
     }
     void check_point()
     {
       //      Serial.println("IN CHECKPOINT");
-      if (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] ==0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 )
-       {
+      //      if (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 )
+      {
         //        Serial.println("NEXT POINT");
         pointer++;
-        Serial.println("####################################################################");
-//        delay(1000);
+        //Serial.println("####################################################################");
+        //        delay(1000);
         Serial.print("    pointer   " );
         Serial.println(pointer);
         if (pointer >  no_pointer - 1 )
@@ -477,16 +475,16 @@ class Leg
     //*************************//
 };
 
- 
+
 
 
 //*****************************************************************************************************************************//
 
 //Leg leg1 = Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1);
 //Leg leg2 = Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2);
-Leg leg[4] ={Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1),
-Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2),Leg(2, kfx31, kfy31, kfx32, kfy32, points_leg3),Leg(4, kfx41, kfy41, kfx42, kfy42, points_leg4)
-};
+Leg leg[4] = {Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1),
+              Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2), Leg(2, kfx31, kfy31, kfx32, kfy32, points_leg3), Leg(3, kfx41, kfy41, kfx42, kfy42, points_leg4)
+             };
 //Leg leg3 = Leg(2);
 //Leg leg4 = Leg(3);
 
@@ -495,35 +493,48 @@ Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2),Leg(2, kfx31, kfy31, kfx32, kfy3
 
 void setup()
 {
- 
-  for (int i = 0 ; i < 2; i++)
+  Wire.begin();
+  Serial.begin(115200);
+  for (int i = 0 ; i < 4; i++)
   {
     for (int j = 0 ; j < 2; j++)
     {
       pinMode(driver[i][j], OUTPUT);
-      digitalWrite(driver[i][j], LOW);    
     }
   }
-
-
-  Wire.begin();
-  Serial.begin(115200);
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 4; i++)
   {
-    for (int j = 0; j < 4; j++)
+    for (int j = 0; j < 2; j++)
     {
       pinMode(mpu[i][j], OUTPUT);
       digitalWrite(mpu[i][j], LOW);
     }
   }
-  
-  digitalWrite(mpu[0][0], HIGH);digitalWrite(mpu[0][1], LOW);digitalWrite(mpu[1][0], LOW);digitalWrite(mpu[1][1], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1], LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);  
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 2; j++)
+    {
+      pinMode(brake[i][j], OUTPUT);
+    }
+  }
+  for (int i = 0 ; i < 4; i++)
+  {
+    for (int j = 0 ; j < 2; j++)
+    {
+      pinMode(pwm[i][j], OUTPUT);
+    }
+  }
+
+
+
+
+  digitalWrite(mpu[0][0], HIGH); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l1l1        ");
   Serial.print(mpu[0][0]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
-  { 
+  {
     float  avg1, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
@@ -541,7 +552,7 @@ void setup()
   }
 
 
-  digitalWrite(mpu[0][1], HIGH);digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[1][0], LOW);digitalWrite(mpu[1][1], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1], LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][1], HIGH); digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.println("l1l2     ");
   Serial.print(mpu[0][1]);
   accelgyro.initialize();
@@ -565,7 +576,7 @@ void setup()
   }
 
   //
-  digitalWrite(mpu[1][0], HIGH);digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[1][1], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1], LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);    
+  digitalWrite(mpu[1][0], HIGH); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l2l1    ");
   Serial.print(mpu[1][0]);
   accelgyro.initialize();
@@ -588,7 +599,7 @@ void setup()
     //    /avg1 = leg2.average(fb1, 0);
   }
 
-  digitalWrite(mpu[1][1], HIGH);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1], LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[1][1], HIGH);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l2l2    ");
   Serial.print(mpu[1][1]);
   accelgyro.initialize();
@@ -611,7 +622,7 @@ void setup()
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[2][0], HIGH);digitalWrite(mpu[2][1], LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], HIGH); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l3l1    ");
   Serial.print(mpu[2][0]);
   accelgyro.initialize();
@@ -634,7 +645,7 @@ void setup()
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1],HIGH);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], HIGH); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l3l2    ");
   Serial.print(mpu[2][1]);
   accelgyro.initialize();
@@ -657,7 +668,7 @@ void setup()
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1],LOW);digitalWrite(mpu[3][0], HIGH);digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], HIGH); digitalWrite(mpu[3][1], LOW);
   Serial.print("l4l1    ");
   Serial.print(mpu[3][0]);
   accelgyro.initialize();
@@ -680,7 +691,7 @@ void setup()
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1],LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], HIGH);
+  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], HIGH);
   Serial.print("l4l2    ");
   Serial.print(mpu[3][1]);
   accelgyro.initialize();
@@ -702,12 +713,12 @@ void setup()
 
     ///avg2 = leg2.average(fb2, 1);
   }
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW);digitalWrite(mpu[2][0], LOW);digitalWrite(mpu[2][1],LOW);digitalWrite(mpu[3][0], LOW);digitalWrite(mpu[3][1], LOW);
-  
+  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+
 
 
   //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
- Serial.print(" "); Serial.print(mpu[0][0]);Serial.print(" "); Serial.print(mpu[0][1]);Serial.print(" "); Serial.print(mpu[1][0]);Serial.print(" "); Serial.print(mpu[1][1]); 
+  Serial.print(" "); Serial.print(mpu[0][0]); Serial.print(" "); Serial.print(mpu[0][1]); Serial.print(" "); Serial.print(mpu[1][0]); Serial.print(" "); Serial.print(mpu[1][1]);
 
   Serial.println("start");
 
@@ -732,12 +743,12 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-  
-  leg[l].gotopos(1,50);
+
+  leg[l].gotopos(1, 50);
   leg[m].gotopos(-20, 60);
   leg[n].gotopos(-20, 60);
-  leg[o].gotopos(1,60);
-//leg2.gotopos(20, 60);
+  leg[o].gotopos(1, 60);
+  //leg2.gotopos(20, 60);
 
   Serial.println("done with this ");
   //  leg2.gotopos(-20, 60);
@@ -750,23 +761,15 @@ void setup()
 
 SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 {
-  //  if (digitalRead(2) == HIGH)
-  //  {
+
   cli();
-  OCR1A = 3000;
-  //Serial.println("In ISR");
-  leg[l].choose_fn();
-  leg[m].choose_fn();
-  leg[n].choose_fn();
-  leg[o].choose_fn();
-// leg2.choose_fn();
-// leg2.check_point();
-   //  a++;
+  OCR1A = 5000;
+    leg[l].check_point();
+    leg[m].check_point();
+    leg[n].check_point();
+    leg[o].check_point();
   sei();
-  //  leg2.choose_fn();
-  //  leg3.choose_fn();
-  //  leg4.choose_fn();
-  //  }
+
 }
 //*************************//
 //loop function
@@ -776,12 +779,18 @@ void loop()
 {
   //Serial.println("hello");
   //Serial.println(a);
-  
- leg[l].chosen_fun();
- leg[m].chosen_fun();
- leg[n].chosen_fun();
- leg[o].chosen_fun(); 
 
-//leg2.chosen_fun();
+  leg[l].choose_fn();
+  leg[m].choose_fn();
+  leg[n].choose_fn();
+  leg[o].choose_fn();
+  leg[l].chosen_fun();
+  leg[m].chosen_fun();
+  leg[n].chosen_fun();
+  leg[o].chosen_fun();
+
+
+
+  //leg2.chosen_fun();
   //*************************//
-}   
+}
