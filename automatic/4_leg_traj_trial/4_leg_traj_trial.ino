@@ -1,19 +1,24 @@
 // this code is for driver recieved from robukits having direction pin ,brake pin , and pwm pin
 //Include all libraries
+
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include "Wire.h"
 #include "MegunoLink.h"
 #include "SimpleKalmanFilter.h"
+
 //volatile int a = 0;
 /**********************************************/
 //MPU6050 accelgyro; // <--use for AD0 floating
+
 MPU6050 accelgyro(0x69); // <-- use for AD0 high
+
 int e_mea = 1;
 float angle;
 int e_est = 1;
 int q = 1 ;
 int l = 0, m = 1, n = 2, o = 3;
+
 SimpleKalmanFilter kfx11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfy11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfx12 = SimpleKalmanFilter(e_mea, e_est, q);
@@ -53,10 +58,12 @@ int pwm[4][2] = {{3, 2}, {5, 4}, {7, 6}, {9, 8}};
 int driver[4][2] = {{38, 36}, {42, 40}, {46, 44}, {50, 48}};
 int mpu [4][2] = {{22, 23}, {24, 25}, {26, 27}, {28, 29}};
 int brake[4][2] = {{39, 37}, {43, 41}, {47, 45}, {51, 49}};
-float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-volatile int flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+float T[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+volatile int flag[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int neg_flag[4] = {0, 0, 0, 0};
 volatile int pos_flag[4] = {0, 0, 0, 0};
+//volatile int sign_flag[4] = {2,2,2,2};
+
 boolean b; ///uiadhfiuahdif
 //volatile float points[9][2] = {{-19.34,54.90},{-17.3,49.96},{-13.4,45.153},{9.8,42.66},{13.7,45.429},{17.2,49.79},{19.3,54.755},{20,60},{-20,60} };
 volatile float points_leg1[4][2] = {{1, 50}, {20, 60}, {1, 60}, { -20, 60}}; //, { -20, 60} }; // rear
@@ -122,24 +129,21 @@ class Leg
       Serial.println("In gotopos");
       X = _X;
       Y = _Y;
-      flag[0][leg] = 1;
-      flag[1][leg] = 1;
+      flag[leg][0] = 1;
+      flag[leg][1] = 1;
       Serial.print(X);
       Serial.print("  ");
       Serial.print(Y);
-      //choose_fn();
     }
     void chosen_fun()
     {
-      //if  (neg_flag[leg] == 1)
-      if (X < 0)
+      if  (neg_flag[leg] == 1)
       {
         calculate_neg_angle(X, Y);
         neg_flag[leg] = 0;
       }
 
-      //if  (pos_flag[leg] == 1)
-      else 
+      if  (pos_flag[leg] == 1)
       {
         calculate_pos_angle(X, Y);
         pos_flag[leg] = 0;
@@ -154,14 +158,14 @@ class Leg
     {
       if (X < 0)
       {
-        if (flag[0][leg] == 1 || flag[1][leg] == 1)
+        if (flag[leg][0] == 1 || flag[leg][1] == 1)
         {
           neg_flag[leg] = 1;
         }
       }
       else if (X >= 0)
       {
-        if (flag[0][leg] == 1 || flag[1][leg] == 1)
+        if (flag[leg][0] == 1 || flag[leg][1] == 1)
         {
           pos_flag[leg] = 1;
         }
@@ -184,11 +188,11 @@ class Leg
       r1 = sqrt(X * X + Y * Y);
       phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
       phi2 = atan(Y / X);
-      T[0][leg] = phi2 - phi1;
+      T[leg][0] = phi2 - phi1;
       phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-      T[1][leg] = pi - phi3;
-      T[0][leg] = T[0][leg] * 180 / pi;
-      T[1][leg] = T[1][leg] * 180 / pi;
+      T[leg][1] = pi - phi3;
+      T[leg][0] = T[leg][0] * 180 / pi;
+      T[leg][1] = T[leg][1] * 180 / pi;
       //
       //      r1 = sqrt(X * X + Y * Y);
       //      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
@@ -227,11 +231,11 @@ class Leg
       phi1 = acos(((a4 * a4) - (a2 * a2) - (r1 * r1)) / (-2.0 * a2 * r1));
       phi2 = atan(-Y / X);
       phi2 = pi + phi2;
-      T[0][leg] = phi2 - phi1;
+      T[leg][0] = phi2 - phi1;
       phi3 = acos(((r1 * r1) - (a2 * a2) - (a4 * a4)) / (-2.0 * a2 * a4));
-      T[1][leg] = pi - phi3;
-      T[0][leg] = T[0][leg] * 180 / pi;
-      T[1][leg] = T[1][leg] * 180 / pi;
+      T[leg][1] = pi - phi3;
+      T[leg][0] = T[leg][0] * 180 / pi;
+      T[leg][1] = T[leg][1] * 180 / pi;
       //      T[1/][leg] = phi3 + T[0][leg] - 180;
       //      //steve
 
@@ -271,7 +275,7 @@ class Leg
       Serial.print(fb1);
       avg1 = average(fb1, 0);
       Serial.print("   ");
-      Serial.print(T[0][leg]);
+      Serial.print(T[leg][0]);
       digitalWrite(mpu[leg][0], LOW);
 
       digitalWrite(mpu[leg][1], HIGH);
@@ -285,7 +289,7 @@ class Leg
       fb2 = fb2 - fb1;
       Serial.print(fb2);
       Serial.print(" ");
-      Serial.println(T[1][leg]);
+      Serial.println(T[leg][1]);
       Serial.print(" ");
       avg2 = average(fb2, 1);
       Serial.println(avg1);
@@ -295,8 +299,8 @@ class Leg
       digitalWrite(mpu[leg][1], LOW);
 
       //      //Find error
-      error1 = T[0][leg] - fb1;
-      error2 = T[1][leg] - fb2;
+      error1 = T[leg][0] - fb1;
+      error2 = T[leg][1] - fb2;
       int pwm1 = (abs(error1) - abs(error2)) * Kp1 + standard;
       int pwm2 = 255;
       //      int pwm1 = int((error1) * Kp1 * (abs(error1) - abs(error2)) + standard);
@@ -317,14 +321,14 @@ class Leg
         //hardstop(relay[leg][0], relay[leg][1]);
         analogWrite(pwm[leg][0], 0);
         hardstop(brake[leg][0]);
-        flag[0][leg] = 0;
+        flag[leg][0] = 0;
         Serial.print(pwm[leg][0]);
         Serial.println("L1 stop");
 
       }
       else
       {
-        flag[0][leg] = 1;
+        flag[leg][0] = 1;
         Serial.println("L1 start");
 
       }
@@ -332,78 +336,78 @@ class Leg
       {
         analogWrite(pwm[leg][1], 0);
         hardstop(brake[leg][1]);
-        flag[1][leg] = 0;
+        flag[leg][1] = 0;
         Serial.print(pwm[leg][1]);
         Serial.println("L2 stop");
 
       }
       else
       {
-        flag[1][leg] = 1;
+        flag[leg][1] = 1;
         Serial.println("L2 start");
 
       }
 
-      if (fb1 < T[0][leg] && fb2 < T[1][leg])
+      if (fb1 < T[leg][0] && fb2 < T[leg][1])
       {
-        if (flag[0][leg] == 1)
+        if (flag[leg][0] == 1)
         {
           //          forward(relay[leg][0], relay[leg][1]);
           backward(driver[leg][0], brake[leg][0]);
           Serial.print("link one increase angle"); Serial.print(" "); Serial.print (driver[leg][0]); Serial.print(" "); Serial.print (driver[leg][1]);
         }
-        if (flag[1][leg] == 1)
+        if (flag[leg][1] == 1)
         {
           backward(driver[leg][1], brake[leg][1]);
           Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
-      else if (fb1 < T[0][leg] && fb2 > T[1][leg])
+      else if (fb1 < T[leg][0] && fb2 > T[leg][1])
       {
-        if (flag[0][leg] == 1)
+        if (flag[leg][0] == 1)
         {
           //          forward(driver[leg][0], driver[leg][1]);
           backward(driver[leg][0], brake[leg][0]);
           Serial.print("link one  increase angle"); Serial.print(" "); Serial.print (driver[leg][0]); Serial.print(" "); Serial.print (driver[leg][1]);
         }
-        if (flag[1][leg] == 1)
+        if (flag[leg][1] == 1)
         {
           forward(driver[leg][1],  brake[leg][1]);
           Serial.print("link two decrease angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
-      else if (fb1 > T[0][leg] && fb2 < T[1][leg])
+      else if (fb1 > T[leg][0] && fb2 < T[leg][1])
       {
-        if (flag[0][leg] == 1)
+        if (flag[leg][0] == 1)
         {
           //          backward(driver[leg][0], driver[leg][1]);
           forward(driver[leg][0], brake[leg][0]);
           Serial.print("link one decrease angle"); Serial.print(" "); Serial.print (driver[leg][0]); Serial.print(" "); Serial.print (driver[leg][1]);
         }
-        if (flag[1][leg] == 1)
+        if (flag[leg][1] == 1)
         {
           backward(driver[leg][1], brake[leg][1]);
 
           Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
-      else if (fb1 > T[0][leg]  && fb2 > T[1][leg])
+      else if (fb1 > T[leg][0]  && fb2 > T[leg][1])
       {
-        if (flag[0][leg] == 1)
+        if (flag[leg][0] == 1)
         {
           //          backward(driver[leg][0], driver[leg][1]);
           forward(driver[leg][0], brake[leg][0]);
           Serial.print("link one decrease angle"); Serial.print(" "); Serial.print (driver[leg][0]); Serial.print(" "); Serial.print (driver[leg][1]);
         }
-        if (flag[1][leg] == 1)
+        if (flag[leg][1] == 1)
         {
           forward(driver[leg][1], brake[leg][1]);
           Serial.print("link two  decrease angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
       Serial.print("flag");
-      Serial.print(flag[0][leg]);
-      Serial.print(flag[1][leg]);
+      Serial.print(flag[leg][0]);
+      Serial.print(flag[leg][1]);
     }
     //*************************//
     //back forward and stop functions
@@ -431,10 +435,8 @@ class Leg
     void check_point()
     {
       //      Serial.println("IN CHECKPOINT");
-      //      if (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 )
-     
-      
-        
+            if (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 )
+      {
         //        Serial.println("NEXT POINT");
         pointer++;
         //Serial.println("####################################################################");
@@ -446,7 +448,7 @@ class Leg
           pointer = 0;
         }
         gotopos(points[pointer][0], points[pointer][1]);
-      
+      }
     }
     float average(int val, int leg)
     {
@@ -487,9 +489,7 @@ class Leg
 
 //Leg leg1 = Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1);
 //Leg leg2 = Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2);
-Leg leg[4] = {Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1),
-              Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2), Leg(2, kfx31, kfy31, kfx32, kfy32, points_leg3), Leg(3, kfx41, kfy41, kfx42, kfy42, points_leg4)
-             };
+Leg leg[4] = {Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1),Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2), Leg(2, kfx31, kfy31, kfx32, kfy32, points_leg3), Leg(3, kfx41, kfy41, kfx42, kfy42, points_leg4)};
 //Leg leg3 = Leg(2);
 //Leg leg4 = Leg(3);
 
@@ -738,7 +738,7 @@ void setup()
 
   TCNT1  = 0;
 
-  OCR1A = 31250;            // compare match register 16MHz/256/2Hz
+  OCR1A = 32150;            // compare match register 16MHz/256/2Hz
 
   TCCR1B |= (1 << WGM12);   // CTC mode
 
@@ -768,19 +768,16 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 {
 
   cli();
-  OCR1A = 31250;
+  OCR1A = 32150;
   
-    leg[l].choose_fn();
-    leg[m].choose_fn();
-    leg[n].choose_fn();
-    leg[o].choose_fn();   
-   // b= (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 );
-   // if (b==1){
-   // leg[l].check_point();
-   // leg[m].check_point();
-   // leg[n].check_point();
-   // leg[o].check_point();
-   // }  
+  leg[l].choose_fn();
+ //leg[m].choose_fn();
+ //leg[n].choose_fn();
+  leg[o].choose_fn();
+  leg[l].check_point();
+  //leg[m].check_point();
+  //leg[n].check_point();
+  leg[o].check_point();
   sei();
 
 }
@@ -795,13 +792,10 @@ void loop()
 
   
   leg[l].chosen_fun();
-  leg[m].chosen_fun();
-  leg[n].chosen_fun();
+ // leg[m].chosen_fun();
+ // leg[n].chosen_fun();
   leg[o].chosen_fun();
-   
-       
-  //Serial.println("loop jinda hai ");
-  
+
 
 
   //leg2.chosen_fun();

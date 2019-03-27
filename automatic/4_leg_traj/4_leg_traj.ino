@@ -104,7 +104,7 @@ class Leg
       SimpleKalmanFilter kfy = _kfy;
       SimpleKalmanFilter kfx1 = _kfx1;
       SimpleKalmanFilter kfy1 = _kfy1;
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 3; i++)
       {
         for (int j = 0; j < 2; j++)
         {
@@ -127,19 +127,16 @@ class Leg
       Serial.print(X);
       Serial.print("  ");
       Serial.print(Y);
-      //choose_fn();
     }
     void chosen_fun()
     {
-      //if  (neg_flag[leg] == 1)
-      if (X < 0)
+      if  (neg_flag[leg] == 1)
       {
         calculate_neg_angle(X, Y);
         neg_flag[leg] = 0;
       }
 
-      //if  (pos_flag[leg] == 1)
-      else 
+      if  (pos_flag[leg] == 1)
       {
         calculate_pos_angle(X, Y);
         pos_flag[leg] = 0;
@@ -432,9 +429,7 @@ class Leg
     {
       //      Serial.println("IN CHECKPOINT");
       //      if (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 )
-     
-      
-        
+      {
         //        Serial.println("NEXT POINT");
         pointer++;
         //Serial.println("####################################################################");
@@ -446,7 +441,7 @@ class Leg
           pointer = 0;
         }
         gotopos(points[pointer][0], points[pointer][1]);
-      
+      }
     }
     float average(int val, int leg)
     {
@@ -738,7 +733,7 @@ void setup()
 
   TCNT1  = 0;
 
-  OCR1A = 31250;            // compare match register 16MHz/256/2Hz
+  OCR1A = 5000;            // compare match register 16MHz/256/2Hz
 
   TCCR1B |= (1 << WGM12);   // CTC mode
 
@@ -768,19 +763,12 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 {
 
   cli();
-  OCR1A = 31250;
+  OCR1A = 5000;
   
-    leg[l].choose_fn();
-    leg[m].choose_fn();
-    leg[n].choose_fn();
-    leg[o].choose_fn();   
-   // b= (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 );
-   // if (b==1){
-   // leg[l].check_point();
-   // leg[m].check_point();
-   // leg[n].check_point();
-   // leg[o].check_point();
-   // }  
+  leg[l].check_point();
+  leg[m].check_point();
+  leg[n].check_point();
+  leg[o].check_point();
   sei();
 
 }
@@ -793,15 +781,16 @@ void loop()
   //Serial.println("hello");
   //Serial.println(a);
 
+  leg[l].choose_fn();
+  leg[m].choose_fn();
+  leg[n].choose_fn();
+  leg[o].choose_fn();
   
   leg[l].chosen_fun();
   leg[m].chosen_fun();
   leg[n].chosen_fun();
   leg[o].chosen_fun();
-   
-       
-  //Serial.println("loop jinda hai ");
-  
+
 
 
   //leg2.chosen_fun();
