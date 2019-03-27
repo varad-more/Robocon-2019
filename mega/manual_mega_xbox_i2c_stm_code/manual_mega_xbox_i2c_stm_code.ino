@@ -18,10 +18,10 @@ struct vector {
   int Magnitude;
 };
 
-#define throw_pin 23
-#define lift_pin 25
-#define open_pin 27
-#define close_pin 29
+#define throw_pin 27
+#define lift_pin 29
+#define open_pin 23
+#define close_pin 25
 
 bool throw_pin_state = 1;
 bool lift_pin_state = 1;
@@ -51,7 +51,7 @@ void setup ()
   digitalWrite(open_pin, HIGH);
   digitalWrite(close_pin, HIGH);
 
-  Serial.begin(115200);
+  Serial.begin(9600);
   if (Usb.Init() == -1)
   {
     Serial.print(F("\r\nOSC did not start"));
@@ -69,6 +69,7 @@ void loop ()
 
 void requestXbox()
 {
+  wdt_reset();
   do {
     Usb.Task();
     if (Xbox.XboxReceiverConnected) {
