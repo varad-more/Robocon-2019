@@ -139,7 +139,7 @@ class Leg
       }
 
       //if  (pos_flag[leg] == 1)
-      else 
+      else
       {
         calculate_pos_angle(X, Y);
         pos_flag[leg] = 0;
@@ -267,7 +267,8 @@ class Leg
       az = kfy.updateEstimate(az);
       Serial.print("Link 1   angle=");
       angle = 180 * atan2(ax, az) / PI;
-      fb1 = abs(angle) - 5.5 ;
+      fb1 = abs(angle) - 5.5;
+      fb1 = 180 - fb1;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
       Serial.print("   ");
@@ -282,7 +283,7 @@ class Leg
       Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
       fb2 =  abs(angle);
-      fb2 = fb2 - fb1;
+      //fb2 = fb2 - fb1;
       Serial.print(fb2);
       Serial.print(" ");
       Serial.println(T[1][leg]);
@@ -432,21 +433,21 @@ class Leg
     {
       //      Serial.println("IN CHECKPOINT");
       //      if (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 )
-     
-      
-        
-        //        Serial.println("NEXT POINT");
-        pointer++;
-        //Serial.println("####################################################################");
-        //        delay(1000);
-        Serial.print("    pointer   " );
-        Serial.println(pointer);
-        if (pointer >  no_pointer - 1 )
-        {
-          pointer = 0;
-        }
-        gotopos(points[pointer][0], points[pointer][1]);
-      
+
+
+
+      //        Serial.println("NEXT POINT");
+      pointer++;
+      //Serial.println("####################################################################");
+      //        delay(1000);
+      Serial.print("    pointer   " );
+      Serial.println(pointer);
+      if (pointer >  no_pointer - 1 )
+      {
+        pointer = 0;
+      }
+      gotopos(points[pointer][0], points[pointer][1]);
+
     }
     float average(int val, int leg)
     {
@@ -557,7 +558,7 @@ void setup()
   }
 
 
-  digitalWrite(mpu[0][1], HIGH); digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], HIGH); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.println("l1l2     ");
   Serial.print(mpu[0][1]);
   accelgyro.initialize();
@@ -581,7 +582,7 @@ void setup()
   }
 
   //
-  digitalWrite(mpu[1][0], HIGH); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], HIGH); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l2l1    ");
   Serial.print(mpu[1][0]);
   accelgyro.initialize();
@@ -600,11 +601,12 @@ void setup()
     angle = 180 * atan2(ax, az) / PI;
 
     fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    avg1 = leg[1].average(fb1, 0);
     //   / Serial.print(fb1);
     //    /avg1 = leg2.average(fb1, 0);
   }
 
-  digitalWrite(mpu[1][1], HIGH);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], HIGH); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l2l2    ");
   Serial.print(mpu[1][1]);
   accelgyro.initialize();
@@ -623,34 +625,34 @@ void setup()
 
     fb2 =  abs(angle);
     fb2 = fb2 - fb1;
-
+    avg2 = leg[1].average(fb2, 1);
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], HIGH); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], HIGH); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l3l1    ");
   Serial.print(mpu[2][0]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
   {
-    float fb2, avg2, angle;
+    float  avg1, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-    ax = leg[2].kfx1.updateEstimate(ax);
-    az = leg[2].kfy1.updateEstimate(az);
-    //    Serial.print("Leg2   angle=");/
+    ax = leg[1].kfx.updateEstimate(ax);
+    az = leg[1].kfy.updateEstimate(az);
+
+    //    Serial.print("Le/g1   angle=");
     //      Serial.print(ax);
-    //    Serial.print(" ")/;
+    //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
 
-    fb2 =  abs(angle);
-    fb2 = fb2 - fb1;
-
+    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    avg1 = leg[1].average(fb1, 0);
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], HIGH); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], HIGH); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   Serial.print("l3l2    ");
   Serial.print(mpu[2][1]);
   accelgyro.initialize();
@@ -669,41 +671,41 @@ void setup()
 
     fb2 =  abs(angle);
     fb2 = fb2 - fb1;
-
+    avg2 = leg[2].average(fb2, 1);
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], HIGH); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], HIGH); digitalWrite(mpu[3][1], LOW);
   Serial.print("l4l1    ");
   Serial.print(mpu[3][0]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
   {
-    float fb2, avg2, angle;
+    float  avg1, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-    ax = leg[3].kfx1.updateEstimate(ax);
-    az = leg[3].kfy1.updateEstimate(az);
-    //    Serial.print("Leg2   angle=");/
+    ax = leg[3].kfx.updateEstimate(ax);
+    az = leg[3].kfy.updateEstimate(az);
+
+    //    Serial.print("Le/g1   angle=");
     //      Serial.print(ax);
-    //    Serial.print(" ")/;
+    //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
 
-    fb2 =  abs(angle);
-    fb2 = fb2 - fb1;
+    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    avg1 = leg[3].average(fb1, 0);
 
     ///avg2 = leg2.average(fb2, 1);
   }
 
-  digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], HIGH);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], HIGH);
   Serial.print("l4l2    ");
   Serial.print(mpu[3][1]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
-  {
-    float fb2, avg2, angle;
+  { float fb2, avg2, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
     ax = leg[3].kfx1.updateEstimate(ax);
@@ -715,6 +717,7 @@ void setup()
 
     fb2 =  abs(angle);
     fb2 = fb2 - fb1;
+    avg2 = leg[3].average(fb2, 1);
 
     ///avg2 = leg2.average(fb2, 1);
   }
@@ -769,18 +772,18 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
   cli();
   OCR1A = 31250;
-  
-    leg[l].choose_fn();
-    leg[m].choose_fn();
-    leg[n].choose_fn();
-    leg[o].choose_fn();   
-   // b= (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 );
-   // if (b==1){
-   // leg[l].check_point();
-   // leg[m].check_point();
-   // leg[n].check_point();
-   // leg[o].check_point();
-   // }  
+
+  leg[l].choose_fn();
+  leg[m].choose_fn();
+  leg[n].choose_fn();
+  //leg[o].choose_fn();
+  // b= (flag[0][0] == 0 && flag[1][0] == 0 && flag[0][1] == 0 && flag[1][1] == 0 && flag[0][2] == 0 && flag[1][2] == 0 && flag[0][3] == 0 && flag[1][3] == 0 );
+  // if (b==1){
+   leg[l].check_point();
+   leg[m].check_point();
+   leg[n].check_point();
+  // leg[o].check_point();
+  // }
   sei();
 
 }
@@ -793,15 +796,15 @@ void loop()
   //Serial.println("hello");
   //Serial.println(a);
 
-  
+
   leg[l].chosen_fun();
   leg[m].chosen_fun();
   leg[n].chosen_fun();
-  leg[o].chosen_fun();
-   
-       
+ // leg[o].chosen_fun();
+
+
   //Serial.println("loop jinda hai ");
-  
+
 
 
   //leg2.chosen_fun();
