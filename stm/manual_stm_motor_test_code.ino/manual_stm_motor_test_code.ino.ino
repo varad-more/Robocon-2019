@@ -9,9 +9,9 @@ struct motor MA, MB, MC;
 
 void setup() {
   // put your setup code here, to run once:
-  MA.pwm = PA8;
-  MB.pwm = PA9;
-  MC.pwm = PA10;
+  MA.pwm = PA8;  //PA8;
+  MB.pwm = PB1;
+  MC.pwm = PB0;
   MA.dir_r = PB12;
   MA.dir_l = PB13;
   MB.dir_r = PB14;
@@ -31,7 +31,13 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(MA.dir_r,HIGH);
-  digitalWrite(MA.dir_l,LOW);
-  analogWrite(MA.pwm,255);
+  digitalWrite(MA.dir_r, HIGH);
+  digitalWrite(MA.dir_l, LOW);
+  digitalWrite(MB.dir_r, HIGH);
+  digitalWrite(MB.dir_l, LOW);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
+  analogWrite(MA.pwm, 255);
+  analogWrite(MB.pwm, 255);
+  analogWrite(MC.pwm, 255);
 }
