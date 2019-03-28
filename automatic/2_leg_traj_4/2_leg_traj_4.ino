@@ -15,7 +15,7 @@ int e_mea = 1;
 float angle;
 int e_est = 1;
 int q = 1 ;
-int l=1;
+int l=0;
 SimpleKalmanFilter kfx11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfy11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfx12 = SimpleKalmanFilter(e_mea, e_est, q);
@@ -42,17 +42,21 @@ float a2 = 39;
 float a3 = 0;
 float a4 = 39;
 float fb1;
-volatile int  no_pointer = 3;
-int pwm[2][2] = {{30, 31}, {32, 33}};//checked 
-int driver[2][2] = {{34,35},{36,37}};//checked -- direction 
-int mpu [2][2] = {{22,23}, {24,25}}; // checked
-int brake[2][2]={{26,27},{28,29}};//checked 
+const int  no_pointer = 3;
+//int pwm[2][2] = {{30, 31}, {32, 33}};//checked 
+//int driver[2][2] = {{34,35},{36,37}};//checked -- direction 
+//int mpu [2][2] = {{22,23}, {24,25}}; // checked
+//int brake[2][2]={{26,27},{28,29}};//checked 
+int pwm[4][2] = {{3, 2}, {5, 4}, {7, 6}, {9, 8}};
+int driver[4][2] = {{38, 36}, {42, 40}, {47, 44}, {51, 49}};//50 KA 51,48 KA 49
+int mpu [4][2] = {{22, 23}, {24, 25}, {26, 27}, {28, 29}};
+int brake[4][2] = {{39, 37}, {43, 41}, {46, 45}, {50, 48}};//51 KA 50,49 KA 48
 float T[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int flag[][4] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int neg_flag[4] = {0, 0, 0, 0};
 volatile int pos_flag[4] = {0, 0, 0, 0};
 //volatile float points[9][2] = {{-19.34,54.90},{-17.3,49.96},{-13.4,45.153},{9.8,42.66},{13.7,45.429},{17.2,49.79},{19.3,54.755},{20,60},{-20,60} };
-volatile float points_leg1[3][2] = {{1,60 },{ -20 , 57 },{ 20 , 57 }};//, { -20, 60} };
+volatile float points_leg1[3][2] = {{1,50 },{ -20 , 57 },{ 20 , 57 }};//, { -20, 60} };
 volatile float points_leg2[3][2] = {{-1,60},{ -20 , 57},{ 20 , 57}};
 //volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
 //volatile float points[36][2] = { { 0, 55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{-8,55.15},{-7,55.15},{-6,55.15},{-5,55.15},{-4,55.15},{-3,55.15},{-2,55.15},{-1,55.15},{0,55.15},{1,55.15},{2,55.15},{3,55.15},{4,55.15},{5,55.15},{6,55.15},{7,55.15},{8,55.15},{9,55.15},{10,55.15},{9.8,54.15},{9.17,53.15},{8,52.15},{6,51.15},{0.50.15} };
@@ -73,7 +77,6 @@ class Leg
     volatile float X;
     volatile float Y;
     volatile float points[3][2];
-    friend void chooseleg();
     SimpleKalmanFilter kfx = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfy = SimpleKalmanFilter(e_mea, e_est, q);
     SimpleKalmanFilter kfx1 = SimpleKalmanFilter(e_mea, e_est, q);
@@ -254,7 +257,7 @@ class Leg
       az = kfy.updateEstimate(az);
       Serial.print("Link 1   angle=");
       angle = 180 * atan2(ax, az) / PI;
-      fb1 = abs(angle) - 5.5 ;
+      fb1 = 180- abs(angle) + 5.5 ;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
       Serial.print("   ");
@@ -341,7 +344,7 @@ class Leg
         }
         if (flag[1][leg] == 1)
         {
-          backward(driver[leg][1], brake[leg][1]);
+         forward(driver[leg][1], brake[leg][1]);
           Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
@@ -355,7 +358,7 @@ class Leg
         }
         if (flag[1][leg] == 1)
         {
-          forward(driver[leg][1],  brake[leg][1]);
+          backward(driver[leg][1],  brake[leg][1]);
           Serial.print("link two decrease angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
@@ -369,7 +372,7 @@ class Leg
         }
         if (flag[1][leg] == 1)
         {
-          backward(driver[leg][1], brake[leg][1]);
+          forward(driver[leg][1], brake[leg][1]);
 
           Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
@@ -384,7 +387,7 @@ class Leg
         }
         if (flag[1][leg] == 1)
         {
-          forward(driver[leg][1], brake[leg][1]);
+          backward(driver[leg][1], brake[leg][1]);
           Serial.print("link two  decrease angle"); Serial.print(" "); Serial.print (driver[leg][2]); Serial.print(" "); Serial.print (driver[leg][3]);
         }
       }
@@ -431,7 +434,7 @@ class Leg
           pointer = 0;
          
            if (l==0) { 
-            l=1;
+            l=0;
           }
           else  {
             l=0;
@@ -534,7 +537,7 @@ void setup()
     //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
 
-    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    fb1 =180- abs(angle) + 5.5 ; // fb1=180- abs(angle) -5 ;
     //    Serial.print(fb1/);
     avg1 = leg[0].average(fb1, 0);
   }
@@ -588,7 +591,7 @@ void setup()
     //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
 
-    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    fb1 =180- abs(angle) + 5.5 ; ; // fb1=180- abs(angle) -5 ;
     //   / Serial.print(fb1);
     //    /avg1 = leg2.average(fb1, 0);
   }
@@ -650,7 +653,7 @@ void setup()
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-leg[l].gotopos(-20, 60);
+leg[l].gotopos(-15, 60);
 //leg2.gotopos(20, 60);
 
   Serial.println("done with this ");
