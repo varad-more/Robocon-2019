@@ -75,8 +75,8 @@ boolean b; ///uiadhfiuahdif
 //volatile float points_leg1[4][2] = {{1, 50}, {15, 60}, {1, 60}, { -15, 60}}; //, { -20, 60} }; // rear
 volatile float points_leg1[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};
 volatile float points_leg3[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}}; //rear
-volatile float points_leg2[4][2] = { { -20, 60}, {20, 60}, { -20, 60},{20, 60}}; //front
-volatile float points_leg4[4][2] = { { -20, 60}, {20, 60}, { -20, 60},{20, 60}}; //front
+volatile float points_leg2[4][2] = { { -20, 60}, {20, 60}, { -20, 60}, {20, 60}}; //front
+volatile float points_leg4[4][2] = { { -20, 60}, {20, 60}, { -20, 60}, {20, 60}}; //front
 
 
 //volatile float points_leg1[1][2] = {{20, 60}};//, {15, 60}, {1, 60}, { -15, 60}}; //, { -20, 60} }; // rear
@@ -322,6 +322,7 @@ class Leg
       Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
       fb2 =  abs(angle);
+      fb2 = 180 - fb2;
       fb2 = fb2 - fb1;
       Serial.print(fb2);
       Serial.print(" ");
@@ -471,7 +472,7 @@ class Leg
     void check_point()
     {
       //      Serial.println("IN CHECKPOINT");
-     // if (flag[0][0] == 0 && flag[0][1] == 0 )//&& flag[1][0] == 0 && flag[1][1] == 0 && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
+      // if (flag[0][0] == 0 && flag[0][1] == 0 )//&& flag[1][0] == 0 && flag[1][1] == 0 && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
       {
         //        Serial.println("NEXT POINT");
         pointer[leg] = pointer[leg] + 1;
@@ -481,7 +482,7 @@ class Leg
           //pointer[1] = 0;
           //pointer[2] = 0;
           //pointer[3] = 0;
-          
+
         }
         Serial.print(" incermented pointer ");
         gotopos(points[pointer[leg]][0], points[pointer[leg]][1]);
@@ -666,6 +667,7 @@ void setup()
     angle = 180 * atan2(ax, az) / PI;
 
     fb2 =  abs(angle);
+    fb2 = 180 - fb2;
     fb2 = fb2 - fb1;
     avg2 = leg2.average(fb2, 1);
     ///avg2 = leg2.average(fb2, 1);
@@ -713,6 +715,7 @@ void setup()
     angle = 180 * atan2(ax, az) / PI;
 
     fb2 =  abs(angle);
+    fb2 = 180 - fb2;
     fb2 = fb2 - fb1;
     avg2 = leg3.average(fb2, 1);
     ///avg2 = leg2.average(fb2, 1);
@@ -760,6 +763,7 @@ void setup()
     angle = 180 * atan2(ax, az) / PI;
 
     fb2 =  abs(angle);
+    fb2 = 180 - fb2;
     fb2 = fb2 - fb1;
     avg2 = leg4.average(fb2, 1);
 
@@ -797,7 +801,7 @@ void setup()
   interrupts();             // enable all interrupts
   Serial.println("Set points");
 
-  leg1.gotopos(-20, 60);
+  leg1.gotopos(20, 60);
   leg2.gotopos(20, 60);
   leg3.gotopos(-20, 60);
   leg4.gotopos(20,60);
@@ -820,8 +824,8 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
   leg1.choose_fn();
     leg2.choose_fn();
-    leg3.choose_fn();
-    leg4.choose_fn();
+   leg3.choose_fn();
+   leg4.choose_fn();
 
   if  ( flag[0][0] == 0 && flag[0][1] == 0 && flag[1][0] == 0 && flag[1][1] == 0  && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
   {
@@ -845,6 +849,7 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
 void loop()
 {
+//  leg1 = leg4/
   //Serial.println("******************");
   // Serial.println(a);
 
@@ -853,10 +858,10 @@ void loop()
   //Serial.println("  (      .     )    ");
   //Serial.print(points_leg1[pointer][1]);
 
-  leg1.chosen_fun();
-  leg2.chosen_fun();
-  leg3.chosen_fun();
-  leg4.chosen_fun();
+   leg1.chosen_fun();
+    leg2.chosen_fun();
+    leg3.chosen_fun();
+    leg4.chosen_fun();
 
   //leg1.onoffcontrol();
   //leg2.onoffcontrol();
