@@ -23,10 +23,10 @@ struct vector {
 #define open_pin 23
 #define close_pin 25
 
-bool throw_pin_state = 1;
-bool lift_pin_state = 1;
-bool open_pin_state = 1;
-bool close_pin_state = 1;
+//bool throw_pin_state = 1;
+//bool lift_pin_state = 1;
+//bool open_pin_state = 1;
+//bool close_pin_state = 1;
 
 struct vector Vector;
 int g, o, l, lag = 0;
@@ -39,7 +39,7 @@ int* calc_motor_speeds(int v, double theta);
 
 void setup ()
 {
-  wdt_enable(WDTO_4S);
+  //  wdt_enable(WDTO_8S);
 
   pinMode(throw_pin, OUTPUT);
   pinMode(lift_pin, OUTPUT);
@@ -69,14 +69,14 @@ void loop ()
 
 void requestXbox()
 {
-  wdt_reset();
+  //  wdt_reset();
   do {
     Usb.Task();
     if (Xbox.XboxReceiverConnected) {
       for (uint8_t i = 0; i < 4; i++) {
         if (Xbox.Xbox360Connected[i]) {
           xboxNumber =  i;
-          wdt_reset();
+          //          wdt_reset();
           Vector.Direction = vector_direction( xboxNumber);  //GET VECTOR DIRECTION
           Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
 
@@ -106,23 +106,21 @@ void requestXbox()
             Vector.Magnitude = vector_magnitude( xboxNumber); //GET VECTOR MAGNITUDE
             pwm = String(int(Vector.Magnitude));
             dir = String(int(Vector.Direction));
+            Serial.println(pwm);Serial.print("  ");Serial.print(dir);
           }
           //          if (Xbox.getButtonPress(L2,  xboxNumber) >= 100){
-          //            Serial.print(Xbox.getButtonPress(L2,  xboxNumber));
+          //        Serial.print(Xbox.getButtonPress(L2,  xboxNumber));
           //            Serial.println("Throw");
           //          }
           if (Xbox.getButtonPress(L3,  xboxNumber)) {
-            throw_pin_state = !throw_pin_state;
-            digitalWrite(throw_pin, throw_pin_state);
-            if (throw_pin_state == 0)
-              Xbox.setLedOn(LED4, i);
-            else
-              Xbox.setLedOff(LED4);
-          }
-          if (Xbox.getButtonPress(Y,  xboxNumber)) {
-            lift_pin_state = !lift_pin_state;
-            digitalWrite(lift_pin, lift_pin_state);
-          }
+            digitalWrite(throw_pin, LOW);
+          } else
+            digitalWrite(throw_pin, HIGH);
+
+          if (Xbox.getButtonPress(Y ,   xboxNumber)) {
+            digitalWrite(lift_pin, LOW);
+          } else
+            digitalWrite(lift_pin, HIGH);
           if (Xbox.getButtonPress(UP,  xboxNumber)) {
 
           }
@@ -130,21 +128,15 @@ void requestXbox()
 
           }
           if (Xbox.getButtonPress(LEFT,  xboxNumber)) {
-            open_pin_state = !open_pin_state;
-            digitalWrite(open_pin, open_pin_state);
-            if (open_pin_state == 0)
-              Xbox.setLedOn(LED3, i);
-            else
-              Xbox.setLedOff(LED3);
-          }
+            digitalWrite(open_pin, LOW);
+          } else
+            digitalWrite(open_pin, HIGH);
+
           if (Xbox.getButtonPress(RIGHT,  xboxNumber)) {
-            close_pin_state = !close_pin_state;
-            digitalWrite(close_pin, close_pin_state);
-            if (close_pin_state == 0)
-              Xbox.setLedOn(LED2, i);
-            else
-              Xbox.setLedOff(LED2);
-          }
+            digitalWrite(close_pin, LOW);
+          } else
+            digitalWrite(close_pin, HIGH);
+
           if (Xbox.getButtonPress(START,  xboxNumber)) {
             //upload mode on stm
           }

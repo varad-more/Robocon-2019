@@ -63,17 +63,17 @@ String  pwm_1 , dir_l;
 
 void setup() {
   Wire.begin();
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   MA.pwm = PA8;
-  MB.pwm = PA9;
-  MC.pwm = PA10;
+  MB.pwm = PB0;
+  MC.pwm = PB1;
   MA.dir_r = PB12;
   MA.dir_l = PB13;
-  MB.dir_r = PB14;
-  MB.dir_l = PB15;
-  MC.dir_r = PA11;
-  MC.dir_l = PA12;
+  MB.dir_r = PB15;
+  MB.dir_l = PB14;
+  MC.dir_r = PA15;
+  MC.dir_l = PB3;
 
   pinMode(MA.dir_r, OUTPUT);
   pinMode(MA.dir_l, OUTPUT);
@@ -128,7 +128,7 @@ void loop() {
 
     int hrd_brk, soft_brk, anti_clo, clo, pwm, dir ;
 
-    hrd_brk = (st.substring(1, comma_1).toInt());
+    hrd_brk = (st.substring(0, comma_1).toInt());
     soft_brk = (st.substring(comma_1 + 1, comma_2).toInt());
     anti_clo = (st.substring(comma_2 + 1, comma_3).toInt());
     clo = (st.substring(comma_3 + 1, comma_4).toInt());
@@ -147,7 +147,7 @@ void loop() {
     */
     if (hrd_brk == 1 )
     {
-      //      Serial.print(hrd_brk);
+      Serial.print("hrd_brk");
       hard_brake(255);
     }
     else if (soft_brk == 1)
@@ -158,14 +158,14 @@ void loop() {
     else if (anti_clo == 1)
     {
       //      Serial.print(anti_clo);
-      anti_clock_wise(120);
+      anti_clock_wise(255);
     }
     else if (clo == 1)
     {
       //      Serial.print(clo);
-      clock_wise(120);
+      clock_wise(255);
     }
-    else
+    else if (pwm != 0 && dir != 0 )
     {
       //Serial.print(pwm);Serial.print(" ");Serial.print(dir);
       m_speed = calc_motor_speeds(pwm, dir);
@@ -173,16 +173,21 @@ void loop() {
       set_motor_values(m_speed, bot_dir);
     }
 
+    else 
+    {
+      Serial.print("hrd_brk");
+      soft_brake();
+    }
   }
 }
 
 void anti_clock_wise(int pwm) {
-  digitalWrite(MA.dir_r, HIGH);
-  digitalWrite(MA.dir_l, LOW);
+//  digitalWrite(MA.dir_r, HIGH);
+//  digitalWrite(MA.dir_l, LOW);
   digitalWrite(MB.dir_r, HIGH);
   digitalWrite(MB.dir_l, LOW);
-  digitalWrite(MC.dir_r, HIGH);
-  digitalWrite(MC.dir_l, LOW);
+//  digitalWrite(MC.dir_r, HIGH);
+//  digitalWrite(MC.dir_l, LOW);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
@@ -219,9 +224,9 @@ void soft_brake() {
   digitalWrite(MB.dir_l, LOW);
   digitalWrite(MC.dir_r, LOW);
   digitalWrite(MC.dir_l, LOW);
-  analogWrite(MA.pwm, 35);
-  analogWrite(MB.pwm, 35);
-  analogWrite(MC.pwm, 35);
+  analogWrite(MA.pwm, 0);
+  analogWrite(MB.pwm, 0);
+  analogWrite(MC.pwm, 0);
 }
 
 int* calc_motor_speeds(int v, double theta)
