@@ -70,10 +70,10 @@ void setup() {
   MC.pwm = PB1;
   MA.dir_r = PB12;
   MA.dir_l = PB13;
-  MB.dir_r = PB15;
-  MB.dir_l = PB14;
-  MC.dir_r = PA15;
-  MC.dir_l = PB3;
+  MB.dir_r = PA15;
+  MB.dir_l = PB3;
+  MC.dir_r = PB15;
+  MC.dir_l = PB14;
 
   pinMode(MA.dir_r, OUTPUT);
   pinMode(MA.dir_l, OUTPUT);
@@ -106,25 +106,25 @@ void loop() {
   Wire.requestFrom(8, 16);
   //  Serial.println("started");
   int i = 0;
-  digitalWrite(PB13, HIGH);
+  digitalWrite(PC13, HIGH);
   while (Wire.available())
   {
-    digitalWrite(PB13, LOW);
     int *m_speed;
     char *bot_dir;
+
     char a = Wire.read();
     stri[i] = a;
     i++;
     String st = String(stri);
     //    Serial.println();
-    Serial.print(st);
+    //    Serial.print(st);
     //Serial.print(" ");
     int comma_1 = st.indexOf(',');
     int comma_2 = st.indexOf(',', comma_1 + 1);
     int comma_3 = st.indexOf(',', comma_2 + 1);
     int comma_4 = st.indexOf(',', comma_3 + 1);
     int comma_5 = st.indexOf(',', comma_4 + 1);
-    Serial.println();
+    //    Serial.println();
 
     int hrd_brk, soft_brk, anti_clo, clo, pwm, dir ;
 
@@ -134,11 +134,11 @@ void loop() {
     clo = (st.substring(comma_3 + 1, comma_4).toInt());
     String  pwm_l = (st.substring(comma_4 + 1, comma_5));
     String  dir_l = (st.substring(comma_5 + 1));
-    //Serial.print (pwm_l);Serial.print(" ");Serial.print(dir_l);
+    //    Serial.print (pwm_l); Serial.print(" "); Serial.print(dir_l);
 
     pwm = pwm_l.toInt();
     dir = dir_l.toInt();
-    //    Serial.println(pwm);
+    //        Serial.println(pwm);
     /*
       Serial.print (" ");
       Serial.print (pwm);
@@ -147,23 +147,23 @@ void loop() {
     */
     if (hrd_brk == 1 )
     {
-      Serial.print("hrd_brk");
-      hard_brake(255);
+      //      Serial.print("hrd_brk");
+      hard_brake(100);
     }
     else if (soft_brk == 1)
     {
-      //      Serial.print(soft_brk);
+      //            Serial.print(soft_brk);
       soft_brake();
     }
     else if (anti_clo == 1)
     {
-      //      Serial.print(anti_clo);
-      anti_clock_wise(255);
+      //            Serial.print(anti_clo);
+      anti_clock_wise(60);
     }
     else if (clo == 1)
     {
-      //      Serial.print(clo);
-      clock_wise(255);
+      //            Serial.print(clo);
+      clock_wise(60);
     }
     else if (pwm != 0 && dir != 0 )
     {
@@ -171,23 +171,23 @@ void loop() {
       m_speed = calc_motor_speeds(pwm, dir);
       bot_dir = calc_motor_direction(dir);
       set_motor_values(m_speed, bot_dir);
+      debug_serial_output(m_speed, bot_dir);
     }
-
-    else 
+    else
     {
-      Serial.print("hrd_brk");
+      //      Serial.print("hrd_brk");
       soft_brake();
     }
   }
 }
 
 void anti_clock_wise(int pwm) {
-//  digitalWrite(MA.dir_r, HIGH);
-//  digitalWrite(MA.dir_l, LOW);
+  digitalWrite(MA.dir_r, HIGH);
+  digitalWrite(MA.dir_l, LOW);
   digitalWrite(MB.dir_r, HIGH);
   digitalWrite(MB.dir_l, LOW);
-//  digitalWrite(MC.dir_r, HIGH);
-//  digitalWrite(MC.dir_l, LOW);
+  digitalWrite(MC.dir_r, HIGH);
+  digitalWrite(MC.dir_l, LOW);
   analogWrite(MA.pwm, pwm);
   analogWrite(MB.pwm, pwm);
   analogWrite(MC.pwm, pwm);
@@ -259,11 +259,11 @@ char* calc_motor_direction(double thet)
 {
   int theta = int(thet);
   static char str[4];
-  if (theta > -60 && theta < 0)   // forward
+  if (theta > -180 && theta < -120) // forward
   {
     str[0] = 'r';
     str[1] = 'l';
-    str[2] = 'l';
+    str[2] = 'r';
   }
   else if (theta < 120 && theta > 60)
   {
@@ -271,17 +271,18 @@ char* calc_motor_direction(double thet)
     str[1] = 'l';
     str[2] = 'r';
   }
-  else if (theta > -180 && theta < -120)
+  else if (theta > -60 && theta < 0)
+  {
+
+    str[0] = 'l';
+    str[1] = 'r';
+    str[2] = 'l';
+  }
+  else if (theta > 0 && theta < 60)
   {
     str[0] = 'l';
     str[1] = 'r';
     str[2] = 'r';
-  }
-  else if (theta > 120 && theta < 180)
-  {
-    str[0] = 'l';
-    str[1] = 'r';
-    str[2] = 'l';
   }
   else if (theta < -60 && theta > -120)
   {
@@ -289,11 +290,11 @@ char* calc_motor_direction(double thet)
     str[1] = 'r';
     str[2] = 'l';
   }
-  else if (theta > 0 && theta < 60)
+  else if (theta > 120 && theta < 180)
   {
     str[0] = 'r';
     str[1] = 'l';
-    str[2] = 'r';
+    str[2] = 'l';
   }
   return str;
 }
@@ -337,7 +338,7 @@ int* debug_serial_input()
   return debug_var;
 }
 
-void debug_serial_output(int *vel, char *dir , double  theta , double lsm, double error )
+void debug_serial_output(int *vel, char *dir )//, double  theta , double lsm, double error )
 {
   Serial.print("MA:");
   Serial.print(vel[0]);
@@ -353,15 +354,16 @@ void debug_serial_output(int *vel, char *dir , double  theta , double lsm, doubl
   Serial.print(dir[1]);
   Serial.print(" ");
   Serial.print(dir[2]);
-  Serial.print(" ");
-  Serial.print("Theta:");
-  Serial.print(theta);
-  Serial.print(" ");
-  Serial.print("Heading:");
-  Serial.print(lsm);
-  Serial.print(" ");
-  Serial.print("Error:");
-  Serial.println(error);
+  //  Serial.print(" ");
+  //  Serial.print("Theta:");
+  //  Serial.print(theta);
+  //  Serial.print(" ");
+  //  Serial.print("Heading:");
+  //  Serial.print(lsm);
+  //  Serial.print(" ");
+  //  Serial.print("Error:");
+  //  Serial.print(error);
+  Serial.println();
 }
 
 void basiclsm()
