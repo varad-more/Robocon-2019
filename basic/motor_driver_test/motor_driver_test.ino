@@ -1,6 +1,6 @@
-#define dir 51
+#define dir 41
 #define pwm 9
-#define brk 50
+#define brk 39
 //
 /*
 int pwm[4][2] = {{13,12}, {11,10}, {9,8}, {7,6}};
@@ -24,7 +24,7 @@ digitalWrite(brk,LOW);
 void loop() {
 digitalWrite(pwm,HIGH);
 //analogWrite(pwm1,HIGH);
-digitalWrite(dir,HIGH);
+digitalWrite(dir,LOW);
 
 }
 

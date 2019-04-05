@@ -60,7 +60,7 @@ float fb1 , fb2;
 const int  no_pointer = 4;
 int pwm[4][2] = {{13, 12}, {11, 10}, {9, 8}, {7, 6}};
 int driver[4][2] = {{25, 29}, {33, 37}, {41, 45}, {49, 53}}; //50 KA 51,48 KA 49
-int mpu [4][2] = {{38 ,40}, {42, 44}, {46, 48}, {50, 52}}; //yet to go
+int mpu [4][2] = {{38 , 40}, {42, 44}, {46, 48}, {50, 52}}; //yet to go
 int brake[4][2] = {{23, 27}, {31, 35}, {39, 43}, {47, 51}}; //51 KA 50,49 KA 48
 float T[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 volatile int flag[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
@@ -307,7 +307,7 @@ class Leg
       az = kfy.updateEstimate(az);
       Serial.print("Link 1   angle=");
       angle = 180 * atan2(ax, az) / PI;
-      fb1 = 180 - abs(angle) + 5.5 ;
+      fb1 = 180 - abs(angle) - 5.5 ;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
       Serial.print("   ");
@@ -322,8 +322,8 @@ class Leg
       Serial.print(" ");
       angle = 180 * atan2(ax, az) / PI;
       fb2 =  abs(angle);
-     // fb2 = 180 - fb2;
-     // fb2 = fb2 - fb1;
+      fb2 = 180 - fb2;
+      fb2 = fb2 - fb1;
       Serial.print(fb2);
       Serial.print(" ");
       Serial.println(T[leg][1]);
@@ -492,15 +492,7 @@ class Leg
     float average(int val, int leg)
     {
 
-      //      Serial.println();
-      //      for (int o = 0 ; o < 2; o++)
-      //      {
-      //        for (int p = 0; p < 10; p++)
-      //        {
-      //          Serial.print(" "); Serial.print(readings[o][p]);
-      //        }
-      //        Serial.println();
-      //      }
+      
       total[leg] = total[leg] - readings[leg][readIndex[leg]];
       // read from the sensor:
       readings[leg][readIndex[leg]] = val;
@@ -573,7 +565,7 @@ void setup()
   }
 
 
-   digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
+  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   //delay(10000);
   Serial.print("waiting for 1 sec");
   digitalWrite(mpu[0][0], HIGH); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
@@ -594,9 +586,7 @@ void setup()
     //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
 
-    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
-    fb1 = 180 - fb1;
-    //    Serial.print(fb1/);
+    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
     avg1 = leg1.average(fb1, 0);
   }
 
@@ -617,9 +607,9 @@ void setup()
     //      Serial.print(ax);
     //    Serial.print(" "/);
     angle = 180 * atan2(ax, az) / PI;
-
     fb2 =  abs(angle);
-  //  fb2 = fb2 - fb1;
+    fb2 = 180 - fb2;
+    fb2 = fb2 - fb1;
 
     avg2 = leg1.average(fb2, 1);
   }
@@ -637,14 +627,9 @@ void setup()
 
     ax = leg2.kfx.updateEstimate(ax);
     az = leg2.kfy.updateEstimate(az);
-
-    //    Serial.print("Le/g1   angle=");
-    //      Serial.print(ax);
-    //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
 
-    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
-    fb1 = 180 - fb1;
+    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
     avg1 = leg2.average(fb1, 0);
     //   / Serial.print(fb1);
     //    /avg1 = leg2.average(fb1, 0);
@@ -662,9 +647,6 @@ void setup()
 
     ax = leg2.kfx1.updateEstimate(ax);
     az = leg2.kfy1.updateEstimate(az);
-    //    Serial.print("Leg2   angle=");/
-    //      Serial.print(ax);
-    //    Serial.print(" ")/;
     angle = 180 * atan2(ax, az) / PI;
 
     fb2 =  abs(angle);
@@ -686,16 +668,9 @@ void setup()
 
     ax = leg3.kfx.updateEstimate(ax);
     az = leg3.kfy.updateEstimate(az);
-
-    //    Serial.print("Le/g1   angle=");
-    //      Serial.print(ax);
-    //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
-
-    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
-    fb1 = 180 - fb1;
+    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
     avg1 = leg3.average(fb1, 0);
-    ///avg2 = leg2.average(fb2, 1);
   }
 
   digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], HIGH); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
@@ -710,16 +685,11 @@ void setup()
 
     ax = leg3.kfx1.updateEstimate(ax);
     az = leg3.kfy1.updateEstimate(az);
-    //    Serial.print("Leg2   angle=");/
-    //      Serial.print(ax);
-    //    Serial.print(" ")/;
     angle = 180 * atan2(ax, az) / PI;
-
     fb2 =  abs(angle);
     fb2 = 180 - fb2;
     fb2 = fb2 - fb1;
     avg2 = leg3.average(fb2, 1);
-    ///avg2 = leg2.average(fb2, 1);
   }
 
   digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], HIGH); digitalWrite(mpu[3][1], LOW);
@@ -734,17 +704,9 @@ void setup()
 
     ax = leg4.kfx.updateEstimate(ax);
     az = leg4.kfy.updateEstimate(az);
-
-    //    Serial.print("Le/g1   angle=");
-    //      Serial.print(ax);
-    //      Serial.print(" ");
     angle = 180 * atan2(ax, az) / PI;
-
-    fb1 = abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
-    fb1 = 180 - fb1;
+    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ; 
     avg1 = leg4.average(fb1, 0);
-
-    ///avg2 = leg2.average(fb2, 1);
   }
 
   digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], HIGH);
@@ -755,20 +717,13 @@ void setup()
   for (int a = 0; a <= 9; a++)
   { float fb2, avg2, angle;
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
     ax = leg4.kfx1.updateEstimate(ax);
     az = leg4.kfy1.updateEstimate(az);
-    //    Serial.print("Leg2   angle=");/
-    //      Serial.print(ax);
-    //    Serial.print(" ")/;
     angle = 180 * atan2(ax, az) / PI;
-
     fb2 =  abs(angle);
     fb2 = 180 - fb2;
     fb2 = fb2 - fb1;
     avg2 = leg4.average(fb2, 1);
-
-    ///avg2 = leg2.average(fb2, 1);
   }
   digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
 
@@ -776,7 +731,7 @@ void setup()
 
   //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   Serial.print(" "); Serial.print(mpu[0][0]); Serial.print(" "); Serial.print(mpu[0][1]); Serial.print(" "); Serial.print(mpu[1][0]); Serial.print(" "); Serial.print(mpu[1][1]);
-
+  delay(5000);
   Serial.println("start");
 
 
@@ -803,7 +758,7 @@ void setup()
 
   leg1.gotopos(20, 60);
   leg2.gotopos(20, 60);
-  leg3.gotopos(-20, 60);
+  leg3.gotopos(20, 60);
   leg4.gotopos(20, 60);
   //leg2.gotopos(20, 60);
 
@@ -827,12 +782,14 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   leg3.choose_fn();
   leg4.choose_fn();
 
-  if  ( flag[0][0] == 0 && flag[0][1] == 0 && flag[1][0] == 0 && flag[1][1] == 0  && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
+//  if  (/*flag[0][0] == 0 && flag[0][1] == 0 )*//*&&*/ flag[1][0] == 0 && flag[1][1] == 0  /*//&&flag[2][0] == 0 && flag[2][1] == 0 )//*/&&*/ flag[3][0] == 0 && flag[3][1] == 0 )/
+  
+  if  ( flag[1][0] == 0 && flag[1][1] == 0  &&  flag[3][0] == 0 && flag[3][1] == 0 )  
   {
 
-    leg1.check_point();
+  //  leg1.check_point();
     leg2.check_point();
-    leg3.check_point();
+//    leg3.check_point();
     leg4.check_point();
 
     //    leg1.gotopos(leg1.points[pointer][0], leg1.points[pointer][1]);
@@ -849,7 +806,7 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
 void loop()
 {
-  //  leg1 = leg4/
+  //  leg1 = leg4/t
   //Serial.println("******************");
   // Serial.println(a);
 
@@ -858,10 +815,10 @@ void loop()
   //Serial.println("  (      .     )    ");
   //Serial.print(points_leg1[pointer][1]);
 
-   leg1.chosen_fun();
-   leg2.chosen_fun();
-   leg3.chosen_fun();
-   leg4.chosen_fun();//
+  //leg1.chosen_fun();
+ leg2.chosen_fun();
+//leg3.chosen_fun();
+ leg4.chosen_fun();
   Serial.flush();
   //leg1.onoffcontrol();
   //leg2.onoffcontrol();
