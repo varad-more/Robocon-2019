@@ -299,6 +299,7 @@ class Leg
       digitalWrite(mpu[leg][0], HIGH);
       //digitalWrite(mpu[leg][1], LOW);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+      Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
       Serial.print("#####################################leg   ");
       Serial.println(leg);
       Serial.print("X in class    "); Serial.print(X); Serial.print("        Y in class    ");
@@ -316,6 +317,7 @@ class Leg
 
       digitalWrite(mpu[leg][1], HIGH);
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+      Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
       ax = kfx1.updateEstimate(ax);
       az = kfy1.updateEstimate(az);
       Serial.print("Link2   angle=");
@@ -361,7 +363,7 @@ class Leg
         flag[leg][0] = 0;
         Serial.print(pwm[leg][0]);
         Serial.println("L1 stop");
-
+        //Serial.println(flag[0][0]);
       }
       else
       {
@@ -376,7 +378,7 @@ class Leg
         flag[leg][1] = 0;
         Serial.print(pwm[leg][1]);
         Serial.println("L2 stop");
-
+        //Serial.println(flag[0][1]);
       }
       else
       {
@@ -444,7 +446,7 @@ class Leg
       }
       Serial.print("flag");
       Serial.print(flag[leg][0]);
-      Serial.print(flag[leg][1]);
+      Serial.println(flag[leg][1]);
     }
     //*************************//
     //back forward and stop functions
@@ -492,7 +494,7 @@ class Leg
     float average(int val, int leg)
     {
 
-      
+
       total[leg] = total[leg] - readings[leg][readIndex[leg]];
       // read from the sensor:
       readings[leg][readIndex[leg]] = val;
@@ -567,9 +569,9 @@ void setup()
 
   digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
   //delay(10000);
-  Serial.print("waiting for 1 sec");
+  Serial.println("waiting for 1 sec");
   digitalWrite(mpu[0][0], HIGH); digitalWrite(mpu[0][1], LOW); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
-  Serial.print("l1l1        ");
+  Serial.print("l1l1     ");
   Serial.print(mpu[0][0]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
@@ -592,7 +594,7 @@ void setup()
 
 
   digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[0][1], HIGH); digitalWrite(mpu[1][0], LOW); digitalWrite(mpu[1][1], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
-  Serial.println("l1l2     ");
+  Serial.print("l1l2     ");
   Serial.print(mpu[0][1]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
@@ -705,7 +707,7 @@ void setup()
     ax = leg4.kfx.updateEstimate(ax);
     az = leg4.kfy.updateEstimate(az);
     angle = 180 * atan2(ax, az) / PI;
-    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ; 
+    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
     avg1 = leg4.average(fb1, 0);
   }
 
@@ -782,14 +784,17 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   leg3.choose_fn();
   leg4.choose_fn();
 
-//  if  (/*flag[0][0] == 0 && flag[0][1] == 0 )*//*&&*/ flag[1][0] == 0 && flag[1][1] == 0  /*//&&flag[2][0] == 0 && flag[2][1] == 0 )//*/&&*/ flag[3][0] == 0 && flag[3][1] == 0 )/
-  
-  if  ( flag[1][0] == 0 && flag[1][1] == 0  &&  flag[3][0] == 0 && flag[3][1] == 0 )  
+  //  if  (/*flag[0][0] == 0 && flag[0][1] == 0 )*//*&&*/ flag[1][0] == 0 && flag[1][1] == 0  /*//&&flag[2][0] == 0 && flag[2][1] == 0 )//*/&&*/ flag[3][0] == 0 && flag[3][1] == 0 )/
+  Serial.println("*#*#*#*#*#*#*#*");
+  Serial.print(flag[1][0]);
+  Serial.print("    ");
+  Serial.println(flag[1][1]);
+  if  ( flag[0][0] == 0 && flag[0][1] == 0 && flag[1][0] == 0 && flag[1][1] == 0 && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
   {
-
-  //  leg1.check_point();
+    Serial.println("Passed Condition");
+    leg1.check_point();
     leg2.check_point();
-//    leg3.check_point();
+    leg3.check_point();
     leg4.check_point();
 
     //    leg1.gotopos(leg1.points[pointer][0], leg1.points[pointer][1]);
@@ -807,7 +812,7 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 void loop()
 {
   //  leg1 = leg4/t
-  //Serial.println("******************");
+  Serial.println("LOOPLOOPLOOPLOOPLOOPLOOP");
   // Serial.println(a);
 
   //Serial.print(pointer);
@@ -815,11 +820,12 @@ void loop()
   //Serial.println("  (      .     )    ");
   //Serial.print(points_leg1[pointer][1]);
 
-  //leg1.chosen_fun();
- leg2.chosen_fun();
-//leg3.chosen_fun();
- leg4.chosen_fun();
-  Serial.flush();
+  leg1.chosen_fun();
+  //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  //leg2.chosen_fun();
+  //leg3.chosen_fun();
+  //leg4.chosen_fun();
+  //Serial.flush();
   //leg1.onoffcontrol();
   //leg2.onoffcontrol();
   //leg3.onoffcontrol();
