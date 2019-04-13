@@ -317,6 +317,10 @@ class Leg
       {
         Serial.write(1);
       }
+      else 
+      {
+        Serial.write(0);
+      }
     }
     void update_pointer()
     { //check if mega sends next points rec
