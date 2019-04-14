@@ -5,7 +5,9 @@
 #include "MegunoLink.h"  //used to plot data ; not yet used in the code 
 #include "SimpleKalmanFilter.h"  //used to filter the raw values of MPU6050  
 
-
+//pin 4,7 brake
+//pin 5,6 pwm
+//pin 12,13 dir
 //class of MPU
 MPU6050 accelgyro(0x69); // <-- use for AD0 high ; the AD0 pin should be high of particular MPU for the utilization of that sensor
 
@@ -13,7 +15,7 @@ MPU6050 accelgyro(0x69); // <-- use for AD0 high ; the AD0 pin should be high of
 //variables reqd for initialzing the kalman filter
 int e_mea = 1;
 int e_est = 1;
-int q = 1 ;
+int q = 1 ;;
 //object of the kalman filter
 SimpleKalmanFilter kfx11 = SimpleKalmanFilter(e_mea, e_est, q);
 SimpleKalmanFilter kfy11 = SimpleKalmanFilter(e_mea, e_est, q);
@@ -36,10 +38,10 @@ float a2 = 39;
 float a3 = 0;
 float a4 = 39;
 
-int dir[2] = {}; //dir-pins
-int pwm[2] = {}; //pwm-pins
-int brake[2] = {}; //brake-pins
-int mpu[2] = {}; //mpu-pins
+int dir[2] = {12, 13}; //dir-pins
+int pwm[2] = {5, 6}; //pwm-pins
+int brake[2] = {4, 7}; //brake-pins
+int mpu[2] = {9, 10}; //mpu-pins
 
 volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};
 
@@ -100,7 +102,7 @@ void setup() {
     ax = kfx11.updateEstimate(ax);
     az = kfy11.updateEstimate(az);
     float angle = 180 * atan2(ax, az) / PI;
-    fb1 = 180 - abs(angle) - 5.5 ; // fb1=180- abs(angle) -5 ;
+    fb1 = 180 - abs(angle) ; // fb1=180- abs(angle) -5 ;
     avg1 = average(fb1, 0);
   }
 
@@ -112,15 +114,13 @@ void setup() {
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
   {
-
     accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
     ax = kfx12.updateEstimate(ax);
     az = kfy12.updateEstimate(az);
     float angle = 180 * atan2(ax, az) / PI;
     fb2 =  abs(angle);
-    fb2 = 180 - fb2;
-    fb2 = fb2 - fb1;
+ //   fb2 = 180 - fb2;
+ //   fb2 = fb2 - fb1;
     avg2 = average(fb2, 1);
   }
   digitalWrite(mpu[0], LOW);  digitalWrite(mpu[1], LOW);
@@ -145,13 +145,14 @@ void setup() {
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-  gotopos(20, 60);
+  gotopos(-20, 60);
 }
-
+int pointer=0;
 void loop() {
   // put your main code here, to run repeatedly:
   chosen_fun();
   check_point(); // yet to decide whether to call in loop or ISR ---- not decided
+  gotopos(points[pointer][0], points[pointer][1]);
 
 }
 
@@ -268,7 +269,7 @@ void onoffcontrol()
   az = kfy11.updateEstimate(az);
   Serial.print("Link 1   angle=   ");
   angle = 180 * atan2(ax, az) / PI;
-  fb1 = 180 - abs(angle) - 5.5 ;
+  fb1 = 180 - abs(angle) ;
 
   Serial.print(fb1);
   avg1 = average(fb1, 0);
@@ -285,8 +286,8 @@ void onoffcontrol()
   Serial.print(" ");
   angle = 180 * atan2(ax, az) / PI;
   fb2 =  abs(angle);
-  fb2 = 180 - fb2;
-  fb2 = fb2 - fb1;
+ // fb2 = 180 - fb2;
+ // fb2 = fb2 - fb1;
   Serial.print(fb2);
   Serial.print(" ");
   Serial.println(T[1]);
@@ -344,7 +345,7 @@ void onoffcontrol()
     if (flag[1] == 1)
     {
       forward(dir[1], brake[1]);
-      Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (dir[2]); Serial.print(" "); Serial.print (dir[3]);
+      Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (dir[0]); Serial.print(" "); Serial.print (dir[1]);
     }
   }
   else if (fb1 < T[0] && fb2 > T[1])
@@ -358,7 +359,7 @@ void onoffcontrol()
     if (flag[1] == 1)
     {
       backward(dir[1],  brake[1]);
-      Serial.print("link two decrease angle"); Serial.print(" "); Serial.print (dir[2]); Serial.print(" "); Serial.print (dir[3]);
+      Serial.print("link two decrease angle"); Serial.print(" "); Serial.print (dir[0]); Serial.print(" "); Serial.print (dir[1]);
     }
   }
   else if (fb1 > T[0] && fb2 < T[1])
@@ -373,7 +374,7 @@ void onoffcontrol()
     {
       forward(dir[1], brake[1]);
 
-      Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (dir[2]); Serial.print(" "); Serial.print (dir[3]);
+      Serial.print("link two  increase angle"); Serial.print(" "); Serial.print (dir[0]); Serial.print(" "); Serial.print (dir[1]);
     }
   }
   else if (fb1 > T[0]  && fb2 > T[1])
@@ -387,7 +388,7 @@ void onoffcontrol()
     if (flag[1] == 1)
     {
       backward(dir[1], brake[1]);
-      Serial.print("link two  decrease angle"); Serial.print(" "); Serial.print (dir[2]); Serial.print(" "); Serial.print (dir[3]);
+      Serial.print("link two  decrease angle"); Serial.print(" "); Serial.print (dir[0]); Serial.print(" "); Serial.print (dir[1]);
     }
   }
   Serial.print("flag");
@@ -454,14 +455,18 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
 void check_point()
 {
+  int pointer;
   if (flag[0] == 1 && flag[1] == 1)
   {
     Serial.write(1);
   }
+  else
+  { Serial.write(0);
+  }
   if (Serial.available())
   {
     pointer = Serial.read();
-    gotopos(points[pointer][points]);
+    gotopos(points[pointer][0], points[pointer][1]);
   }
 
 }

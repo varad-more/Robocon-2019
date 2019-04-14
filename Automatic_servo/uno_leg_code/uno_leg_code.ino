@@ -15,8 +15,8 @@ MPU6050 accelgyro(0x69);
 #define driver_link2   0
 #define brake_link1  0
 #define brake_link2  0
-#define mpu_link1  0
-#define mpu_link2  0
+#define mpu_link1  9
+#define mpu_link2  10
 class Leg
 {
   public:
@@ -41,8 +41,8 @@ class Leg
     int T[2] = {0, 0};
     Leg()
     {
-      while (!Serial.available());
-      pointer = Serial.read();
+     // while (!Serial.available());
+      pointer = 0;//Serial.read();
     }
     void gotopos(float _X, float _Y)
     {
@@ -134,8 +134,8 @@ class Leg
 
     void onoffcontrol()
     { int angle, avg1, avg2, fb2, fb1;
+    digitalWrite(mpu [link1], LOW);digitalWrite(mpu [link2], LOW);
       digitalWrite(mpu [link1], HIGH);
-      digitalWrite(mpu [link2], LOW);
       accelgyro.initialize();
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
@@ -150,7 +150,7 @@ class Leg
       avg1 = average(fb1, link1);
       Serial.print("   ");
       Serial.print(T  [link1]);
-      digitalWrite(mpu [link1], LOW);
+      digitalWrite(mpu [link1], LOW);digitalWrite(mpu [link2], LOW);
       digitalWrite(mpu [link2], HIGH);
       accelgyro.initialize();
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
@@ -393,7 +393,10 @@ Leg leg;
 
 void setup() {
   // put your setup code here, to run once:
+  Serial.begin(115200);
+  Serial.print("setup");
   leg.setup_pins();
+  
   leg.initializempu();
   noInterrupts();           // disable all interrupts
 
@@ -417,13 +420,16 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   cli();
   OCR1A = 3000;
   leg.choose_fn();
-  leg.update_mega();
-  leg.update_pointer();
+  
   sei();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  
   leg.chosen_fun();
+  leg.update_mega();
+  leg.update_pointer();
+  leg.gotopos(5,5);
   //leg.onoffcontrol();
 }

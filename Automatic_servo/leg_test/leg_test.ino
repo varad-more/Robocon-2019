@@ -54,7 +54,7 @@ void loop()
   accelgyro.initialize();
   Serial.print(accelgyro.testConnection() ? "MPU6050 10 connection successful" : "MPU6050  10 connection failed");
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  delay(1);
+ // delay(1);
   ax = kfx1.updateEstimate(ax);
   az = kfy1.updateEstimate(az);
   angle = 180 * atan2(ax, az) / PI;
