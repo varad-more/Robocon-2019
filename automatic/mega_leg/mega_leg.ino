@@ -4,9 +4,10 @@
 #define link4 3
 
 int pointer = 0;
-int flag = {0, 0, 0, 0};
+int flag[4] = {0, 0, 0, 0};
 void setup() {
   // put your setup code here, to run once:
+  Serial.begin(115200);
   Serial.write(0);
   Serial1.write(0);
   Serial2.write(0);
@@ -19,7 +20,7 @@ void loop() {
   if (Serial1.available()) flag[link2] = Serial1.read();
   if (Serial2.available()) flag[link3] = Serial2.read();
   if (Serial3.available()) flag[link4] = Serial3.read();
-  if (flag[link1] && flag[link2] && flag[link3] && flag[link4])
+  if (flag[link1])// && flag[link2] && flag[link3] && flag[link4])
   {
     pointer ++;
     if (pointer == 4) pointer = 0;

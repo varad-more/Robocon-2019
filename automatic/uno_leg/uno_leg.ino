@@ -36,12 +36,17 @@ float a2 = 39;
 float a3 = 0;
 float a4 = 39;
 
-int dir[2] = {}; //dir-pins
-int pwm[2] = {}; //pwm-pins
-int brake[2] = {}; //brake-pins
-int mpu[2] = {}; //mpu-pins
+int dir[2] = {12,13}; //dir-pins
+int pwm[2] = {5,6}; //pwm-pins
+int brake[2] = {4,7}; //brake-pins
+int mpu[2] = {9,10}; //mpu-pins
 
 volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};
+ 
+volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};  // leg -0
+volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};  // leg -1 
+volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};  // leg -2
+volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};  // leg -3
 
 float T[2] = {0, 0};
 volatile int flag[2] = {0, 0};
@@ -145,7 +150,7 @@ void setup() {
   //  Serial.print("noint");
   interrupts();             // enable all interrupts
   Serial.println("Set points");
-  gotopos(20, 60);
+  gotopos(1, 60);
 }
 
 void loop() {
@@ -460,8 +465,12 @@ void check_point()
   }
   if (Serial.available())
   {
-    pointer = Serial.read();
-    gotopos(points[pointer][points]);
+    char pointer = Serial.read();
+    gotopos(points[int(pointer)][0], points[int(pointer)][1]);
+    //Serial.print("Points ( . )( . )");
+    //Serial.print("\t");
+    //Serial.print(points[int(pointer)][0]);
+    //Serial.println(points[int(pointer)][1]);
   }
 
 }
