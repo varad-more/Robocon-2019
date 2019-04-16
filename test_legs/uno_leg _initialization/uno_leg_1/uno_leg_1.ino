@@ -55,7 +55,7 @@ int mpu[2] = {9, 10}; //mpu-pins
 
 
 //volatile float points[4][2] = { { -10, 60}, {5, 55}, {20, 60}, {1, 60}}; // leg -0
-volatile float points[4][2] = { {-20, 60}, {1, 60}, {10, 60}, {5, 55}}; // leg -1
+volatile float points[4][2] = { {-20, 60}, {1, 60}, {5, 60}, {-5, 55}}; // leg -1
 //volatile float points[4][2] = { {20, 60}, {1, 60}, { -10, 60}, {5, 55}}; // leg -2
 //volatile float points[4][2] = { { 20, 60}, {5 , 50}, {-10, 60}, {1, 60}}; // leg -3
 
