@@ -3,7 +3,7 @@
 //#include <avr/wdt.h>
 #include "I2Cdev.h"
 #include "MPU6050.h"
-#include "Wire.h"
+#include <Wire.h>
 #include "MegunoLink.h"
 #include "SimpleKalmanFilter.h"
 
@@ -180,6 +180,7 @@ class Leg
     void calculate_pos_angle(float X, float Y)
     {
       Serial.println("In positive");
+      //Serial.println("In calcneg");
       float r1 = 0;
       float phi1 = 0;
       float phi2 = 0;
@@ -200,7 +201,7 @@ class Leg
 
     void calculate_neg_angle(float X, float Y)
     {
-      Serial.println("In negtive");
+      Serial.println("In negative");
       //Serial.println("In calcneg");
       float r1 = 0;
       float phi1 = 0;
@@ -232,6 +233,12 @@ class Leg
       digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
       digitalWrite(mpu[leg][0], HIGH);
       //digitalWrite(mpu[leg][1], LOW);
+<<<<<<< Updated upstream:Automatic_servo/finally_working/finally_working.ino
+=======
+      accelgyro.initialize();
+
+      accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
+>>>>>>> Stashed changes:automatic/4_leg_traj_trial/4_leg_traj_trial.ino
       Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       Serial.print("#####################################leg   ");
@@ -250,6 +257,12 @@ class Leg
       digitalWrite(mpu[1][1], LOW);  digitalWrite(mpu[0][1], LOW);  digitalWrite(mpu[1][0], LOW);  digitalWrite(mpu[0][0], LOW); digitalWrite(mpu[2][0], LOW); digitalWrite(mpu[2][1], LOW); digitalWrite(mpu[3][0], LOW); digitalWrite(mpu[3][1], LOW);
 
       digitalWrite(mpu[leg][1], HIGH);
+<<<<<<< Updated upstream:Automatic_servo/finally_working/finally_working.ino
+=======
+      accelgyro.initialize();
+
+      accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
+>>>>>>> Stashed changes:automatic/4_leg_traj_trial/4_leg_traj_trial.ino
       Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
       accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
       ax = kfx1.updateEstimate(ax);
@@ -515,7 +528,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float  avg1, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg1.kfx.updateEstimate(ax);
     az = leg1.kfy.updateEstimate(az);
@@ -538,7 +551,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float fb2, avg2, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg1.kfx1.updateEstimate(ax);
     az = leg1.kfy1.updateEstimate(az);
@@ -562,7 +575,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float  avg1, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg2.kfx.updateEstimate(ax);
     az = leg2.kfy.updateEstimate(az);
@@ -582,7 +595,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float fb2, avg2, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg2.kfx1.updateEstimate(ax);
     az = leg2.kfy1.updateEstimate(az);
@@ -603,7 +616,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float  avg1, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg3.kfx.updateEstimate(ax);
     az = leg3.kfy.updateEstimate(az);
@@ -620,7 +633,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float fb2, avg2, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg3.kfx1.updateEstimate(ax);
     az = leg3.kfy1.updateEstimate(az);
@@ -639,7 +652,7 @@ void setup()
   for (int a = 0; a <= 9; a++)
   {
     float  avg1, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
 
     ax = leg4.kfx.updateEstimate(ax);
     az = leg4.kfy.updateEstimate(az);
@@ -655,7 +668,7 @@ void setup()
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   for (int a = 0; a <= 9; a++)
   { float fb2, avg2, angle;
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    accelgyro.getAcceleration(&ax, &ay, &az);//, &gx, &gy, &gz);
     ax = leg4.kfx1.updateEstimate(ax);
     az = leg4.kfy1.updateEstimate(az);
     angle = 180 * atan2(ax, az) / PI;
@@ -725,8 +738,13 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   Serial.println("*#*#*#*#*#*#*#*");
   Serial.print(flag[0][0]);
   Serial.print("    ");
+<<<<<<< Updated upstream:Automatic_servo/finally_working/finally_working.ino
   Serial.println(flag[0][1]);
   if  ( flag[0][0] == 0 && flag[0][1] == 0)// && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
+=======
+  Serial.println(flag[1][1]);
+  if  ( flag[3][0] == 0 && flag[3][1] == 0)// && flag[1][0] == 0 && flag[1][1] == 0 && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
+>>>>>>> Stashed changes:automatic/4_leg_traj_trial/4_leg_traj_trial.ino
   {
     Serial.println("Passed Condition");
     leg1.check_point();
@@ -757,7 +775,11 @@ void loop()
 {
 
   //  leg1 = leg4/t
+<<<<<<< Updated upstream:Automatic_servo/finally_working/finally_working.ino
   //Serial.println("LOOP_POOP_LOOP");
+=======
+  //Serial.println("LOOPLOOPLOOP");
+>>>>>>> Stashed changes:automatic/4_leg_traj_trial/4_leg_traj_trial.ino
   // Serial.println(a);
 
   //Serial.print(pointer);
@@ -768,9 +790,15 @@ void loop()
 
 
   //leg1.chosen_fun();
+<<<<<<< Updated upstream:Automatic_servo/finally_working/finally_working.ino
   leg2.chosen_fun();
   //leg3.chosen_fun();
   //leg4.chosen_fun();
+=======
+  //leg2.chosen_fun();
+  //leg3.chosen_fun();
+  leg4.chosen_fun();
+>>>>>>> Stashed changes:automatic/4_leg_traj_trial/4_leg_traj_trial.ino
   //Serial.flush();
   //leg1.onoffcontrol();
   //leg2.onoffcontrol();
