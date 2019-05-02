@@ -166,12 +166,12 @@ void loop() {
     else if (anti_clo == 1)
     {
       //            Serial.print(anti_clo);
-      anti_clock_wise(60);
+      anti_clock_wise(100);
     }
     else if (clo == 1)
     {
       //            Serial.print(clo);
-      clock_wise(60);
+      clock_wise(100);
     }
     else if (pwm != 0 && dir != 0 )
     {

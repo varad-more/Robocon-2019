@@ -5,7 +5,10 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <avr/wdt.h>
+#include <Servo.h>
 
+Servo servo;
+int servo_pos = 0;
 int xboxNumber = 0;
 #define  maxSpeed 255
 USB Usb;
@@ -22,6 +25,7 @@ struct vector {
 #define lift_pin 29
 #define open_pin 23
 #define close_pin 25
+#define servo_pin 33
 
 //bool throw_pin_state = 1;
 //bool lift_pin_state = 1;
@@ -35,12 +39,12 @@ double vector_direction(uint8_t);
 int vector_magnitude(uint8_t);
 
 int* calc_motor_speeds(int v, double theta);
-//v/oid requestEvent();
+void requestEvent();
 
 void setup ()
 {
   //  wdt_enable(WDTO_8S);
-
+  servo.attach(servo_pin);
   pinMode(throw_pin, OUTPUT);
   pinMode(lift_pin, OUTPUT);
   pinMode(open_pin, OUTPUT);
@@ -111,43 +115,48 @@ void requestXbox()
           //          if (Xbox.getButtonPress(L2,  xboxNumber) >= 100){
           //        Serial.print(Xbox.getButtonPress(L2,  xboxNumber));
           //            Serial.println("Throw");
-          //          }
-          if (Xbox.getButtonPress(L3,  xboxNumber)) {
-            digitalWrite(throw_pin, LOW);
-          } else
-            digitalWrite(throw_pin, HIGH);
+          //
+        }
+        if (Xbox.getButtonPress(R3,  xboxNumber)) {
+          servo.write(servo_pos + 180);
+          delay(15);
+        }
+        if (Xbox.getButtonPress(L3,  xboxNumber)) {
+          digitalWrite(throw_pin, LOW);
+        } else
+          digitalWrite(throw_pin, HIGH);
 
-          if (Xbox.getButtonPress(Y ,   xboxNumber)) {
-            digitalWrite(lift_pin, LOW);
-          } else
-            digitalWrite(lift_pin, HIGH);
-          if (Xbox.getButtonPress(UP,  xboxNumber)) {
+        if (Xbox.getButtonPress(Y ,   xboxNumber)) {
+          digitalWrite(lift_pin, LOW);
+        } else
+          digitalWrite(lift_pin, HIGH);
+        if (Xbox.getButtonPress(UP,  xboxNumber)) {
 
-          }
-          if (Xbox.getButtonPress(DOWN,  xboxNumber)) {
+        }
+        if (Xbox.getButtonPress(DOWN,  xboxNumber)) {
 
-          }
-          if (Xbox.getButtonPress(LEFT,  xboxNumber)) {
-            digitalWrite(open_pin, LOW);
-          } else
-            digitalWrite(open_pin, HIGH);
+        }
+        if (Xbox.getButtonPress(LEFT,  xboxNumber)) {
+          digitalWrite(open_pin, LOW);
+        } else
+          digitalWrite(open_pin, HIGH);
 
-          if (Xbox.getButtonPress(RIGHT,  xboxNumber)) {
-            digitalWrite(close_pin, LOW);
-          } else
-            digitalWrite(close_pin, HIGH);
+        if (Xbox.getButtonPress(RIGHT,  xboxNumber)) {
+          digitalWrite(close_pin, LOW);
+        } else
+          digitalWrite(close_pin, HIGH);
 
-          if (Xbox.getButtonPress(START,  xboxNumber)) {
-            //single wheel forward
-            ori = "0";
-          }
-          if (Xbox.getButtonPress(BACK,  xboxNumber)) {
-            ori = "1";
-          }
+        if (Xbox.getButtonPress(START,  xboxNumber)) {
+          //single wheel forward
+          ori = "0";
+        }
+        if (Xbox.getButtonPress(BACK,  xboxNumber)) {
+          ori = "1";
         }
       }
     }
-  }   while (Xbox.Xbox360Connected[xboxNumber]);
+  }
+  while (Xbox.Xbox360Connected[xboxNumber]);
   //  soft_brake();
 }
 void requestEvent()
