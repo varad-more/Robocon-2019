@@ -2,7 +2,7 @@
 #include "I2Cdev.h" // MPU to arduino connection 
 #include "MPU6050.h"  // MPU6050
 #include "Wire.h"  //reqiured library for i2c connection 
-#include "MegunoLink.h"  //used to plot data ; not yet used in the code 
+//#include "MegunoLink.h"  //used to plot data ; not yet used in the code 
 #include "SimpleKalmanFilter.h"  //used to filter the raw values of MPU6050  
 
 
@@ -39,7 +39,7 @@ float a4 = 39;
 int dir[2] = {}; //dir-pins
 int pwm[2] = {}; //pwm-pins
 int brake[2] = {}; //brake-pins
-int mpu[2] = {}; //mpu-pins
+int mpu[2] = {9,10}; //mpu-pins
 
 volatile float points[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};
 
@@ -88,7 +88,7 @@ void setup() {
 
   digitalWrite(mpu[0], LOW); digitalWrite(mpu[1], LOW);
   digitalWrite(mpu[0], HIGH);
-  Serial.print("l3l1    ");
+  Serial.print("link1     ");
   Serial.print(mpu[0]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
@@ -106,7 +106,7 @@ void setup() {
 
   digitalWrite(mpu[0], LOW); digitalWrite(mpu[1], LOW);
   digitalWrite(mpu[1], HIGH);
-  Serial.print("l3l2    ");
+  Serial.print("link2 ");
   Serial.print(mpu[1]);
   accelgyro.initialize();
   Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
@@ -120,7 +120,7 @@ void setup() {
     float angle = 180 * atan2(ax, az) / PI;
     fb2 =  abs(angle);
     fb2 = 180 - fb2;
-    fb2 = fb2 - fb1;
+    fb2 = fb2 ;
     avg2 = average(fb2, 1);
   }
   digitalWrite(mpu[0], LOW);  digitalWrite(mpu[1], LOW);
@@ -286,7 +286,7 @@ void onoffcontrol()
   angle = 180 * atan2(ax, az) / PI;
   fb2 =  abs(angle);
   fb2 = 180 - fb2;
-  fb2 = fb2 - fb1;
+  fb2 = fb2 ;
   Serial.print(fb2);
   Serial.print(" ");
   Serial.println(T[1]);
@@ -454,14 +454,15 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
 void check_point()
 {
+  int pointer ;
   if (flag[0] == 1 && flag[1] == 1)
   {
-    Serial.write(1);
+    //Serial.write(1);
   }
   if (Serial.available())
   {
     pointer = Serial.read();
-    gotopos(points[pointer][points]);
+    gotopos(points[pointer][0],points[pointer][1]);
   }
 
 }
