@@ -16,6 +16,7 @@ void processInput ()
         pitch[mpu] = -receivedNumber;
       else
         pitch[mpu] = receivedNumber;
+        break;
     // fall through to start a new number
     case startOfNumberDelimiter:
       receivedNumber = 0;
@@ -47,12 +48,11 @@ void setup()
 
 void loop()
 {
- 
-  Serial.write(mpu);
   while (!Serial.available());
   while (Serial.available())
     processInput ();
   temp = "<" + (String)mpu + ":" + (String)pitch[mpu] + ">";
-  temp.toCharArray(value[mpu], temp.length() + 1);
+  temp.toCharArray(value[mpu], temp.length()+1);
   Serial1.write(value[mpu]);
+  Serial.print(mpu);Serial.println(pitch[mpu]);
 }
