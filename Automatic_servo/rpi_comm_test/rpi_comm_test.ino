@@ -9,13 +9,22 @@ void processInput ()
   static long receivedNumber = 0;
   static boolean negative = false;
   byte c = Serial.read ();
+ // Serial.print("c   ");Serial.println(c);
   switch (c)
   {
     case endOfNumberDelimiter:
       if (negative)
+      {
         pitch[mpu] = -receivedNumber;
+       //   temp = "<" + (String)mpu + ":" + (String)pitch[mpu] + ">";
+//  Serial.print(mpu);Serial.print(":");Serial.println(pitch[mpu]);/
+      }
       else
+      {
         pitch[mpu] = receivedNumber;
+         // temp = "<" + (String)mpu + ":" + (String)pitch[mpu] + ">";
+//  Serial.print(mpu);Serial.print(":");Serial.println(pitch[mpu]);/
+  }
         break;
     // fall through to start a new number
     case startOfNumberDelimiter:
@@ -36,23 +45,35 @@ void processInput ()
       mpu = receivedNumber;
       receivedNumber = 0;
       break;
+     
+ 
   }
+   //Serial.print("no:   ");Serial.println(receivedNumber);
 }
 
 
 void setup()
 {
   Serial.begin(115200);
-  Serial1.begin(115200);
+//  Serial1.begin(115200);/
 }
 
 void loop()
-{
-  while (!Serial.available());
+{ Serial.println("start loop");
+  while (!Serial.available())
+  {
+   Serial.println("H");
+  }
   while (Serial.available())
-    processInput ();
-  temp = "<" + (String)mpu + ":" + (String)pitch[mpu] + ">";
-  temp.toCharArray(value[mpu], temp.length()+1);
-  Serial1.write(value[mpu]);
-  Serial.print(mpu);Serial.println(pitch[mpu]);
+    {
+      processInput ();   
+      Serial.println("  in process  ");
+    }
+    Serial.println("end transmission");
+   // Serial.println("endprocess");
+
+  Serial.print(mpu);Serial.print(":");Serial.println(pitch[mpu]);
+ // mpu=0;
+  //Serial.println("end loop");
+ // Serial.flush();
 }
