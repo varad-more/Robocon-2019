@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/suraj/robocon/src/mpu6050_new/src/mpu_client.cpp" "/home/suraj/robocon/build/mpu6050_new/CMakeFiles/mpu_client.dir/src/mpu_client.cpp.o"
+  "/home/pi/robocon/src/mpu6050_new/src/mpu_client.cpp" "/home/pi/robocon/build/mpu6050_new/CMakeFiles/mpu_client.dir/src/mpu_client.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -17,9 +17,9 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/home/suraj/robocon/devel/include"
-  "/opt/ros/melodic/include"
-  "/opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
+  "/home/pi/robocon/devel/include"
+  "/opt/ros/kinetic/include"
+  "/opt/ros/kinetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
   )
 
 # Targets to which this target links.

@@ -7,10 +7,10 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH="/home/suraj/robocon/devel:$CMAKE_PREFIX_PATH"
-export LD_LIBRARY_PATH="/home/suraj/robocon/devel/lib:$LD_LIBRARY_PATH"
-export PKG_CONFIG_PATH="/home/suraj/robocon/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
-export PWD="/home/suraj/robocon/build"
-export PYTHONPATH="/home/suraj/robocon/devel/lib/python2.7/dist-packages:$PYTHONPATH"
-export ROSLISP_PACKAGE_DIRECTORIES="/home/suraj/robocon/devel/share/common-lisp"
-export ROS_PACKAGE_PATH="/home/suraj/robocon/src:$ROS_PACKAGE_PATH"
+export CMAKE_PREFIX_PATH="/home/pi/robocon/devel:$CMAKE_PREFIX_PATH"
+export LD_LIBRARY_PATH="/home/pi/robocon/devel/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="/home/pi/robocon/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
+export PWD="/home/pi/robocon/build"
+export PYTHONPATH="/home/pi/robocon/devel/lib/python2.7/dist-packages:$PYTHONPATH"
+export ROSLISP_PACKAGE_DIRECTORIES="/home/pi/robocon/devel/share/common-lisp"
+export ROS_PACKAGE_PATH="/home/pi/robocon/src:$ROS_PACKAGE_PATH"

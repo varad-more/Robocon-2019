@@ -4,7 +4,7 @@ import numpy as np
 from mpu6050_new.msg import accl_values
 from mpu6050_new.msg import kalman_values
 
-dt = 1.0/60
+dt = 8.0/60
 F = np.array([[1, dt, 0], [0, 1, dt], [0, 0, 1]])
 H = np.array([1, 0, 0]).reshape(1, 3)
 Q = np.array([[0.05, 0.05, 0.0], [0.05, 0.05, 0.0], [0.0, 0.0, 0.0]])
@@ -67,6 +67,6 @@ def listener():
 
 if __name__ == '__main__':
     msg = kalman_values()
-    pub = rospy.Publisher('kalman_values',kalman_values ,queue_size=10)
+    pub = rospy.Publisher('kalman_values',kalman_values ,queue_size=60)
     listener()
     

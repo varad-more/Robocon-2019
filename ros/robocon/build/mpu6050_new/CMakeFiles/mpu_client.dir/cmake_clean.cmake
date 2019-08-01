@@ -1,7 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/mpu_client.dir/src/mpu_client.cpp.o"
-  "/home/suraj/robocon/devel/lib/mpu6050_new/mpu_client.pdb"
-  "/home/suraj/robocon/devel/lib/mpu6050_new/mpu_client"
+  "/home/pi/robocon/devel/lib/mpu6050_new/mpu_client.pdb"
+  "/home/pi/robocon/devel/lib/mpu6050_new/mpu_client"
 )
 
 # Per-language clean rules from dependency scanning.

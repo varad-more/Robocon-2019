@@ -30,6 +30,6 @@ def mpu_server():
     rospy.spin()
 
 if __name__ == "__main__":
-    pub = rospy.Publisher('mpu_accl_values', accl_values,queue_size=10)
+    pub = rospy.Publisher('mpu_accl_values', accl_values,queue_size=60)
     msg = accl_values()
     mpu_server()

@@ -1,8 +1,8 @@
-prefix=/home/suraj/robocon/devel
+prefix=/home/pi/robocon/devel
 
 Name: mpu6050_new
 Description: Description of mpu6050_new
 Version: 0.0.0
-Cflags: -I/home/suraj/robocon/devel/include
-Libs: -L/home/suraj/robocon/devel/lib 
+Cflags: -I/home/pi/robocon/devel/include
+Libs: -L/home/pi/robocon/devel/lib 
 Requires: message_runtime

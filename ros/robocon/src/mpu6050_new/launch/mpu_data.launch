@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <node name="record" pkg="rosbag" type="record" args="-a --output-name=$(find mpu6050_new)/bag/mpu_new"/>
   <node name="mpu_server" pkg="mpu6050_new" type="mpu6050_pynode.py" />
   <node name="mpu_client" pkg="mpu6050_new" type="mpu_client" />
   <node name="kalman_node" pkg="mpu6050_new" type="kalman_node.py" />

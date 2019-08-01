@@ -1,7 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/mpu6050_new_generate_messages_cpp"
-  "/home/suraj/robocon/devel/include/mpu6050_new/accl_values.h"
-  "/home/suraj/robocon/devel/include/mpu6050_new/mpu_values.h"
+  "/home/pi/robocon/devel/include/mpu6050_new/accl_values.h"
+  "/home/pi/robocon/devel/include/mpu6050_new/kalman_values.h"
+  "/home/pi/robocon/devel/include/mpu6050_new/mpu_values.h"
 )
 
 # Per-language clean rules from dependency scanning.
