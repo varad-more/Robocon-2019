@@ -15,11 +15,20 @@ def callback(mpu):
 if __name__ == "__main__":
     rospy.init_node('serial_comm',log_level=rospy.INFO)
     rospy.Subscriber('kalman_values',kalman_values, callback)
-    ser = serial.Serial('/dev/ttyACM0')
+    connected = False
+
+    while (not connected) and (not rospy.is_shutdown()):
+       try:
+          ser = serial.Serial('/dev/ttyACM0')
+          connected = True
+       except :
+          rospy.logerr("check ardunio connection!!!!")  
+          pass
+    rospy.loginfo("connected | starting")
     ser.baudrate = 115200
     r=rospy.Rate(5)
     mpu=0;
-    rospy.loginfo("starting")
+    
     while not rospy.is_shutdown():
                    p="{0:d}".format(pitch[mpu])
                    a="<"+str(mpu)+":"+p+">"
