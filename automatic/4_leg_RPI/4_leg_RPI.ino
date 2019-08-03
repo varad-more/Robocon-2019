@@ -109,10 +109,10 @@ class Leg
     //*************************//
     //gotopos takes X and Y and Goes to that position
 
-    void gotopos(volatile float _X, volatile  float _Y)
+    void gotopos(volatile float a, volatile  float b)
     {
-      X = _X;
-      Y = _Y;
+      X = a;
+      Y = b;
       flag[leg][0] = 1;
       flag[leg][1] = 1;
     }
@@ -435,8 +435,8 @@ void setup()
   communication_thread.onRun(processInput_c);
   communication_thread.setInterval(10);
 
-  all_thread.add(leg_thread);
-  all_thread.add(communication_thread);
+  all_thread.add( &leg_thread );
+  all_thread.add( &communication_thread );
   
   
 
@@ -479,6 +479,9 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 
 void t_tread()
 {
+  Serial.println("***********************************");
+  Serial.println("t_tread");
+  Serial.println("***********************************");
   leg1.choose_fn();
   leg2.choose_fn();
   leg3.choose_fn();
@@ -498,6 +501,9 @@ void t_tread()
 //*********communication function     ****************//
 void processInput_c ()
 {
+  Serial.println("***********************************");
+  Serial.println("process");
+  Serial.println("***********************************");
   while(Serial.available()){
   static long receivedNumber = 0;
   static boolean negative = false;
