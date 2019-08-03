@@ -1,30 +1,15 @@
 // this code is for driver recieved from robukits having direction pin ,brake pin , and pwm pin
-//Include all libraries
-
-
+int mpu = 0;
+const char startOfNumberDelimiter = '<';
+const char endOfNumberDelimiter   = '>';
 volatile int a = 0;
 /**********************************************/
-//MPU6050 accelgyro; // <--use for AD0 floating
-
-
 int e_mea = 1;
 float angle;
 int e_est = 1;
 int q = 1 ;
 int l = 0, m = 1, n = 2, o = 3;
-
-
-//e_mea: Measurement Uncertainty - How much do we expect to our measurement vary
-//e_est: Estimation Uncertainty - Can be initilized with the same value as e_mea since the kalman filter will adjust its value.
-//q: Process Variance - usually a small number between 0.001 and 1 - how fast your measurement moves. Recommended 0.01. Should be tunned to your needs.
-//                                                               ^
-/**********************************************/
-//Declare constants for mpu
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-
 //Declaring all the variables
-
 float pi = 3.14159;
 float a1 = 0;
 float a2 = 39;
@@ -32,72 +17,41 @@ float a3 = 0;
 float a4 = 39;
 float fb1 , fb2;
 //
-
-
-
-///volatile
 const int  no_pointer = 4;
 int pwm[4][2] = {{13, 12}, {11, 10}, {9, 8}, {7, 6}};
 int driver[4][2] = {{25, 29}, {33, 37}, {41, 45}, {49, 53}}; //50 KA 51,48 KA 49
-int mpu [4][2] = {{0 , 1}, {2, 3}, {4, 5}, {6, 7}}; 
+int mpu_sel[4][2] = {{0 , 1}, {2, 3}, {4, 5}, {6, 7}}; 
+int pitch[8]={0,0,0,0,0,0,0,0};
 int brake[4][2] = {{23, 27}, {31, 35}, {39, 43}, {47, 51}}; //51 KA 50,49 KA 48
 float T[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-volatile int flag[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
-volatile int neg_flag[4] = {0, 0, 0, 0};
-volatile int pos_flag[4] = {0, 0, 0, 0};
+int flag[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+int neg_flag[4] = {0, 0, 0, 0};
+int pos_flag[4] = {0, 0, 0, 0};
 int pointer [4] = {0, 0, 0, 0};
-//volatile int sign_flag[4] = {2,2,2,2};
-
-boolean b; ///uiadhfiuahdif
-//volatile float points[9][2] = {{-19.34,54.90},{-17.3,49.96},{-13.4,45.153},{9.8,42.66},{13.7,45.429},{17.2,49.79},{19.3,54.755},{20,60},{-20,60} };
-//
-//volatile float points_leg1[4][2] = {{1, 50}, {15, 60}, {1, 60}, { -15, 60}}; //, { -20, 60} }; // rear
-volatile float points_leg1[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};
-volatile float points_leg3[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}}; //rear
-volatile float points_leg2[4][2] = { { -20, 60}, {20, 60}, { -20, 60}, {20, 60}}; //front
-volatile float points_leg4[4][2] = { { -20, 60}, {20, 60}, { -20, 60}, {20, 60}}; //front
-
-
-//volatile float points_leg1[1][2] = {{20, 60}};//, {15, 60}, {1, 60}, { -15, 60}}; //, { -20, 60} }; // rear
-//volatile float points_leg3[4][2] = {{ -20, 60}, {1, 50}, {20, 60}, {5, 60}}; //rear
-//volatile float points_leg2[4][2] = {{ -20, 60}, {1, 60}, {20, 60}, {1, 50}}; //front
-//volatile float points_leg4[4][2] = {{1, 60}, {20, 60}, {1, 50}, { -20, 60}}; //front
-
-
-
-//volatile float points[10][2] = {/*{0, 55.15}, { 0 , 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15},*/ { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15}, { -10, 55.15}, { -9.8, 56.15}, { -9.17, 57.15}, { -8, 58.15}, { -6, 59.15}};
-//volatile float points[36][2] = { { 0, 55.15}, { 0, 54.15}, { 0, 53.15}, { 0, 52.15}, { 0, 51.15}, { 0, 50.15}, { -6, 51.15}, { -8, 52.15}, { -9.17, 53.15}, { -9.8, 54.15},{-10, 55.15},{ -9, 55.15},{-8,55.15},{-7,55.15},{-6,55.15},{-5,55.15},{-4,55.15},{-3,55.15},{-2,55.15},{-1,55.15},{0,55.15},{1,55.15},{2,55.15},{3,55.15},{4,55.15},{5,55.15},{6,55.15},{7,55.15},{8,55.15},{9,55.15},{10,55.15},{9.8,54.15},{9.17,53.15},{8,52.15},{6,51.15},{0.50.15} };
-//volatile
-//volatile int pointer1 = 0,pointer2 = 0,pointer3 = 0,pointer4 = 0;
-/*****************************************************************************************************************************/
+boolean b; 
+float points_leg1[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}};
+float points_leg3[4][2] = { {20, 60}, { -20, 60}, {20, 60}, { -20, 60}}; //rear
+float points_leg2[4][2] = { { -20, 60}, {20, 60}, { -20, 60}, {20, 60}}; //front
+float points_leg4[4][2] = { { -20, 60}, {20, 60}, { -20, 60}, {20, 60}}; //front
+void processInput ();
 //Class for leg
 
-//class next_leg
-//{
-//  Leg current_leg;
-//  public:
-//
-//};
 class Leg
 {
   public:
-    volatile int leg;  //private variable for leg number
-    volatile float X;
-    volatile float Y;
-
-    volatile float points[no_pointer][2];
-
-
+    int leg;  //private variable for leg number
+    float X;
+    float Y;
+    float points[no_pointer][2];
     int readIndex[2] = {0, 0};
     int total[2] = {0, 0};
-
     int numReadings = 10;
     int readings[2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
     float  avg1, avg2;
     float fb2 = 0, fb1 = 0;
     float error1 = 0;
     float error2 = 0;
-    Leg(int _leg, volatile float _points[no_pointer][2])
+    Leg(int _leg, float _points[no_pointer][2])
     {
       leg = _leg; //declare public variable
       for (int i = 0; i < no_pointer; i++)
@@ -111,24 +65,16 @@ class Leg
     //*************************//
     //gotopos takes X and Y and Goes to that position
 
-    void gotopos(volatile float _X, volatile  float _Y)
+    void gotopos(float a ,  float b)
     {
       // Serial.println(" ");
-      X = _X;
-      Y = _Y;
+      X = a;
+      Y = b;
       flag[leg][0] = 1;
       flag[leg][1] = 1;
-
-      // Serial.print(X);
-      //Serial.print("  ");
-      // Serial.print(Y);
     }
     void chosen_fun()
     {
-      // Serial.print("///a/a/a/a/");
-      //Serial.println(X);
-
-      //Serial.print(" sign flag 1 "); Serial.print(neg_flag[leg]  );   Serial.print("   sign flag 2   "); Serial.println(pos_flag[leg]);
       if  (neg_flag[leg] == 1)
       {
         calculate_neg_angle(X, Y);
@@ -148,20 +94,14 @@ class Leg
 
     void choose_fn()
     {
-      //Serial.print("///a/a/a/a/");
-      //Serial.println(X);
       if (X < 0)
       {
-        Serial.print(" flag 1 "); Serial.print(flag[leg][0]  );   Serial.print("    flag 2   "); Serial.print(flag[leg][1]);// Serial.print("    leg   "); Serial.print(leg);
+        Serial.print(" flag 1 "); Serial.print(flag[leg][0]  ); Serial.print("    flag 2   "); Serial.print(flag[leg][1]);// Serial.print("    leg   "); Serial.print(leg);
 
         if (flag[leg][0] == 1 || flag[leg][1] == 1)
         {
           neg_flag[leg] = 1;
         }
-        /*else
-          {
-          neg_flag[leg] = 0;
-          }*/
       }
       else if (X > 0)
       {
@@ -169,10 +109,6 @@ class Leg
         {
           pos_flag[leg] = 1;
         }
-        /*else
-          {
-          pos_flag[leg] = 0;
-          }*/
       }
       else
       {
@@ -198,27 +134,6 @@ class Leg
       T[leg][1] = pi - phi3;
       T[leg][0] = T[leg][0] * 180 / pi;
       T[leg][1] = T[leg][1] * 180 / pi;
-      //
-      //      r1 = sqrt(X * X + Y * Y);
-      //      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
-      //      phi2 = (atan(Y / X)) * 180 / PI;
-      //      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
-      //      T[0][leg] = phi1 + phi2;
-      //      T[1][leg] = phi3 + T[0][leg] - 180;
-      //      T[0][leg] = 180 - T[0][leg] ;/
-      //      T[1][leg] = 180 - T[1][leg] ;/
-      //steve changes
-      //      T[0][leg] = 180 - T[0][leg];
-      //      T[1][leg] = 180 - T[1][leg];
-
-      //      T[0][leg] = T[0][leg] - 90;
-      /*********************/
-      //       r1 = sqrt(X * X + Y * Y);
-      //      phi1 = acos(((r1 * r1) + (a2 * a2) - (a4 * a4)) / (2.0 * a2 * r1));
-      //      phi2 = atan(Y / X);
-      //      phi3 = (acos(((a4 * a4) + (a2 * a2) - (r1 * r1)) / (2.0 * a2 * a4)))*180/PI;
-      //      T[0][leg] = (phi2 + phi1)*180/PI;
-      //      T[1][leg] = -(phi3 + T[0][leg] - 180);
       onoffcontrol();
     }
     //*************************//
@@ -242,20 +157,6 @@ class Leg
       T[leg][1] = pi - phi3;
       T[leg][0] = T[leg][0] * 180 / pi;
       T[leg][1] = T[leg][1] * 180 / pi;
-      //      T[1/][leg] = phi3 + T[0][leg] - 180;
-      //      //steve
-
-      //      r1 = sqrt(X * X + Y * Y);
-      //      phi1 = (acos((r1 * r1 + a2 * a2 - a4 * a4) / (2 * a2 * r1))) * 180. / PI;
-      //      phi2 = (atan(-Y / X)) * 180 / PI; // Here X is negetive so, in k2 it is multipled by negetive sign.
-      //      phi3 = (acos((a2 * a2 + a4 * a4 - r1 * r1) / (2 * a2 * a4))) * 180. / PI;
-      //      T[0][leg] = phi1 + phi2;
-      //      T[1][leg] = phi3 + T[0][leg] - 180;
-      //      T[0][leg] = 180 - T[0][leg] ;/
-      //      T[1][leg] = 180 - T[1][leg] ;/
-
-      //   T[0][leg] = 180 - T[0][leg];
-      //      T[1][leg] = 180 - T[1][leg]'
       onoffcontrol();
     }
     //*************************//
@@ -267,18 +168,12 @@ class Leg
       int standard = 150;
       String temp;
       //Read the feedback pot
-      Serial.write(mpu[leg][0]);
-      while(!Serial.available());
-      temp = Serial.read();
-      angle=temp.toFloat();
-      fb1 = 180 - abs(angle) - 5.5 ;
+      angle=pitch[mpu_sel[leg][0]];
+      fb1 =  abs(angle)  ;
       Serial.print(fb1);
       avg1 = average(fb1, 0);
-      Serial.write(mpu[leg][1]);
-      while(!Serial.available());
-      temp = Serial.read();
-      angle=temp.toFloat();
-      fb2 = 180 - fb2;
+      angle=pitch[mpu_sel[leg][1]];
+      fb2 = 180 - abs(angle);
       fb2 = fb2 - fb1;
       Serial.print(fb2);
       Serial.print(" ");
@@ -291,24 +186,8 @@ class Leg
       fb2 = avg2;
       error1 = T[leg][0] - fb1;
       error2 = T[leg][1] - fb2;
-      int pwm1 = (abs(error1) - abs(error2)) * Kp1 + standard;
-      int pwm2 = 255;
-      //      int pwm1 = int((error1) * Kp1 * (abs(error1) - abs(error2)) + standard);
-      //      int pwm2 = int((error2) * Kp2 * (pow(1.7, (-abs(error1) + 20)) + 1) + standard);
-      pwm1 = constrain(pwm1, 0, 255);
-      //      pwm2 = constrain(pwm2, 0, 255);
-
-
-      analogWrite(pwm[leg][0], 255); //pwm1);
-      analogWrite(pwm[leg][1], 255); //);
-
-      //      Serial.print(" ");
-      //      Serial.print(p/wm[leg][0]);
-      //      Serial.print(pwm[/leg][1]);
-      //Control statements for feedback based motion
       if ((error1) <= 5 && (error1) >=  -5 )
       {
-        //hardstop(relay[leg][0], relay[leg][1]);
         analogWrite(pwm[leg][0], 0);
         hardstop(brake[leg][0]);
         flag[leg][0] = 0;
@@ -329,7 +208,6 @@ class Leg
         flag[leg][1] = 0;
         Serial.print(pwm[leg][1]);
         Serial.println("L2 stop");
-        //Serial.println(flag[0][1]);
       }
       else
       {
@@ -432,11 +310,7 @@ class Leg
         if (pointer[leg] == no_pointer  )
         {
           pointer[leg] = 0;
-          //pointer[1] = 0;
-          //pointer[2] = 0;
-          //pointer[3] = 0;
-
-        }
+          }
         Serial.print(" incermented pointer ");
         gotopos(points[pointer[leg]][0], points[pointer[leg]][1]);
       }
@@ -466,25 +340,17 @@ class Leg
     //*************************//
 };
 
-
-
-
 //*****************************************************************************************************************************//
 //
 Leg leg1 = Leg(0,  points_leg1);
 Leg leg2 = Leg(1,  points_leg2);
 Leg leg3 = Leg(2,  points_leg3);
 Leg leg4 = Leg(3,  points_leg4);
-//Leg leg[4] = {Leg(0, kfx11, kfy11, kfx12, kfy12, points_leg1), Leg(1, kfx21, kfy21, kfx22, kfy22, points_leg2), Leg(2, kfx31, kfy31, kfx32, kfy32, points_leg3), Leg(3, kfx41, kfy41, kfx42, kfy42, points_leg4)};
-//Leg leg3 = Leg(2);
-//Leg leg4 = Leg(3);
-
-
 //Setup function to setup baud rate pinModes
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   for (int i = 0 ; i < 4; i++)
   {
     for (int j = 0 ; j < 2; j++)
@@ -506,66 +372,19 @@ void setup()
       pinMode(pwm[i][j], OUTPUT);
     }
   }
-
-
-  //Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-  Serial.print(" "); Serial.print(mpu[0][0]); Serial.print(" "); Serial.print(mpu[0][1]); Serial.print(" "); Serial.print(mpu[1][0]); Serial.print(" "); Serial.print(mpu[1][1]);
-  delay(5000);
-  Serial.println("start");
-
-
-
-  // initialize timer1
-
-  noInterrupts();           // disable all interrupts
-
-  TCCR1A = 0 ;
-
-  TCCR1B = 0;
-
-  TCNT1  = 0;
-
-  OCR1A = 5000;            // compare match register 16MHz/256/2Hz
-
-  TCCR1B |= (1 << WGM12);   // CTC mode
-
-  TCCR1B |= (1 << CS12);    // 256 prescalerp
-  TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
-  //  Serial.print("noint");
-  interrupts();             // enable all interrupts
-  Serial.println("Set points");
-
   leg1.gotopos(20, 60);
   leg2.gotopos(20, 60);
   leg3.gotopos(20, 60);
   leg4.gotopos(20, 60);
-  //leg2.gotopos(20, 60);
-
-  Serial.println("done with this ");
-  //  leg2.gotopos(-20, 60);
-  //  leg3.gotopos(-20, 60);
-  //  leg4.gotopos(-20, 60);
-
 }
-//*************************//
-//ISR
-
-SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
+void loop()
 {
-  Serial.println("ISR");
-  cli();
-  OCR1A = 5000;
-
+  //
   leg1.choose_fn();
   leg2.choose_fn();
   leg3.choose_fn();
   leg4.choose_fn();
-
-  //  if  (/*flag[0][0] == 0 && flag[0][1] == 0 )*//*&&*/ flag[1][0] == 0 && flag[1][1] == 0  /*//&&flag[2][0] == 0 && flag[2][1] == 0 )//*/&&*/ flag[3][0] == 0 && flag[3][1] == 0 )/
-  Serial.println("*#*#*#*#*#*#*#*");
-  Serial.print(flag[1][0]);
-  Serial.print("    ");
-  Serial.println(flag[1][1]);
+  //
   if  ( flag[0][0] == 0 && flag[0][1] == 0 && flag[1][0] == 0 && flag[1][1] == 0 && flag[2][0] == 0 && flag[2][1] == 0 && flag[3][0] == 0 && flag[3][1] == 0 )
   {
     Serial.println("Passed Condition");
@@ -573,26 +392,67 @@ SIGNAL(TIMER1_COMPA_vect)          // timer compare interrupt service routine
     leg2.check_point();
     leg3.check_point();
     leg4.check_point();
-
-    //    leg1.gotopos(leg1.points[pointer][0], leg1.points[pointer][1]);
-    //   leg2.gotopos(leg2.points[pointer][0], leg2.points[pointer][1]);
-    //  leg3.gotopos(leg3.points[pointer][0], leg3.points[pointer][1]);
-    //leg4.gotopos(leg4.points[pointer][0], leg4.points[pointer][1]);
   }
-  sei();
-
-}
-//*************************//
-//loop function
-
-
-void loop()
-{
-  //  leg1 = leg4/t
-  Serial.println("LOOPLOOPLOOPLOOPLOOPLOOP");
+  //  
   leg1.chosen_fun();
   leg2.chosen_fun();
   leg3.chosen_fun();
   leg4.chosen_fun();
+    while (Serial.available())
+    {
+      processInput ();   
+    }
+  Serial.print(0);Serial.print(":");Serial.print(pitch[0]);Serial.print("|");
+  Serial.print(1);Serial.print(":");Serial.print(pitch[1]);Serial.print("|");
+  Serial.print(2);Serial.print(":");Serial.print(pitch[2]);Serial.print("|");
+  Serial.print(3);Serial.print(":");Serial.print(pitch[3]);Serial.print("|");
+  Serial.print(4);Serial.print(":");Serial.print(pitch[4]);Serial.print("|");
+  Serial.print(5);Serial.print(":");Serial.print(pitch[5]);Serial.print("|");
+  Serial.print(6);Serial.print(":");Serial.print(pitch[6]);Serial.print("|");
+  Serial.print(7);Serial.print(":");Serial.print(pitch[7]);Serial.println();
 
+
+}
+
+void processInput ()
+{
+  static long receivedNumber = 0;
+  static boolean negative = false;
+  byte c = Serial.read ();
+  switch (c)
+  {
+    case endOfNumberDelimiter:
+      if (negative)
+      {
+        pitch[mpu] = -receivedNumber;
+       
+      }
+      else
+      {
+        pitch[mpu] = receivedNumber;
+    
+  }
+        break;
+    // fall through to start a new number
+    case startOfNumberDelimiter:
+      receivedNumber = 0;
+      negative = false;
+      break;
+
+    case '-':
+      negative = true;
+      break;
+
+    case '0' :    case '1':    case '2':    case '3':    case '4':    case '5':    case '6':    case '7':    case '8':    case '9':
+      receivedNumber *= 10;
+      receivedNumber += c - '0';
+      break;
+
+    case ':' :
+      mpu = receivedNumber;
+      receivedNumber = 0;
+      break;
+     
+ 
+  }
 }

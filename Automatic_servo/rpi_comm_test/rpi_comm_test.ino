@@ -9,21 +9,18 @@ void processInput ()
   static long receivedNumber = 0;
   static boolean negative = false;
   byte c = Serial.read ();
- // Serial.print("c   ");Serial.println(c);
   switch (c)
   {
     case endOfNumberDelimiter:
       if (negative)
       {
         pitch[mpu] = -receivedNumber;
-       //   temp = "<" + (String)mpu + ":" + (String)pitch[mpu] + ">";
-//  Serial.print(mpu);Serial.print(":");Serial.println(pitch[mpu]);/
+       
       }
       else
       {
         pitch[mpu] = receivedNumber;
-         // temp = "<" + (String)mpu + ":" + (String)pitch[mpu] + ">";
-//  Serial.print(mpu);Serial.print(":");Serial.println(pitch[mpu]);/
+    
   }
         break;
     // fall through to start a new number
@@ -48,32 +45,29 @@ void processInput ()
      
  
   }
-   //Serial.print("no:   ");Serial.println(receivedNumber);
 }
 
 
 void setup()
 {
   Serial.begin(115200);
-//  Serial1.begin(115200);/
 }
 
 void loop()
-{ Serial.println("start loop");
-  while (!Serial.available())
-  {
-   Serial.println("H");
-  }
+{ //Serial.println("start loop");
   while (Serial.available())
     {
       processInput ();   
-      Serial.println("  in process  ");
+      //Serial.println("receving data");
     }
-    Serial.println("end transmission");
-   // Serial.println("endprocess");
 
-  Serial.print(mpu);Serial.print(":");Serial.println(pitch[mpu]);
- // mpu=0;
-  //Serial.println("end loop");
- // Serial.flush();
+  Serial.print(0);Serial.print(":");Serial.print(pitch[0]);Serial.print("|");
+  Serial.print(1);Serial.print(":");Serial.print(pitch[1]);Serial.print("|");
+  Serial.print(2);Serial.print(":");Serial.print(pitch[2]);Serial.print("|");
+  Serial.print(3);Serial.print(":");Serial.print(pitch[3]);Serial.print("|");
+  Serial.print(4);Serial.print(":");Serial.print(pitch[4]);Serial.print("|");
+  Serial.print(5);Serial.print(":");Serial.print(pitch[5]);Serial.print("|");
+  Serial.print(6);Serial.print(":");Serial.print(pitch[6]);Serial.print("|");
+  Serial.print(7);Serial.print(":");Serial.print(pitch[7]);Serial.println();
+
 }

@@ -26,20 +26,23 @@ if __name__ == "__main__":
           pass
     rospy.loginfo("connected | starting")
     ser.baudrate = 115200
-    r=rospy.Rate(5)
+    r=rospy.Rate(20)
     mpu=0;
-    
+    a=""
     while not rospy.is_shutdown():
-                   p="{0:d}".format(pitch[mpu])
-                   a="<"+str(mpu)+":"+p+">"
-                   a = a.encode()
-                   rospy.loginfo("%d %s ",mpu,p)
-                   ser.write(a)
-                   ser.flushOutput()
-                   mpu=mpu+1
-                   if mpu==8: 
-                       mpu=0
-            #       time.sleep(0.01)
-                   r.sleep() 
+                  p="{0:d}".format(pitch[mpu])
+                  a=a+"<"+str(mpu)+":"+p+">"
+                  mpu=mpu+1
+                  rospy.loginfo("H")
+                  if mpu==8:
+                     rospy.loginfo(a) 
+                     a = a.encode() 
+                     ser.write(a) 
+                     mpu=0
+                     a=""
+                     ser.flushOutput()
+                     ser.flushInput()
+                  r.sleep()
+                   
  #   print(a)
     ser.close() 
