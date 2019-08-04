@@ -4,5 +4,6 @@
   <node name="mpu_server" pkg="mpu6050_new" type="mpu6050_pynode.py" />
   <node name="mpu_client" pkg="mpu6050_new" type="mpu_client" />
   <node name="kalman_node" pkg="mpu6050_new" type="kalman_node.py" />
+  <node name="moving_avg" pkg="mpu6050_new" type="moving_avg.py" />
   <node name="serial_comm" pkg="mpu6050_new" type="serial_comm.py" />
 </launch>

@@ -52,6 +52,7 @@ add_message_files(
    FILES
    accl_values.msg
    kalman_values.msg
+   mpu_pitch.msg
 #   Message1.msg
 #   Message2.msg
  )

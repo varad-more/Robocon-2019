@@ -3,9 +3,9 @@ from mpu6050_new.srv import *
 import rospy
 from mpu6050 import MPU6050
 from mpu6050_new.msg import accl_values
-prev_ax=[0,0,0,0,0,0,0,0]
-prev_ay=[0,0,0,0,0,0,0,0]
-prev_az=[0,0,0,0,0,0,0,0]
+prev_ax=np.zeros(8,dtype=int)
+prev_ay=np.zeros(8,dtype=int)
+prev_az=np.zeros(8,dtype=int)
 
 def mpu(req):
     try:

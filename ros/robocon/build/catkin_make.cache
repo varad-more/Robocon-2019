@@ -1,2 +1,0 @@
-mpu6050_new
--DCATKIN_DEVEL_PREFIX=/home/pi/robocon/devel -DCMAKE_INSTALL_PREFIX=/home/pi/robocon/install -G Unix Makefiles
